@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Schf</string>
+    <string name="app_name">Vicigilo</string>
     <string name="btn_go_start">ПУСК</string>
     <string name="btn_go_stop">СТОП</string>
     <string name="txt_minutes">"%1$s мин"</string>

@@ -6,9 +6,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,19 +16,13 @@ import androidx.core.app.NotificationManagerCompat
 import ru.fxy7ci.schf.databinding.ActivityMainBinding
 import java.util.*
 
-
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     lateinit var timerAdaptor : TimeGridAdapter
-    val scheduler = Scheduler()
-    private lateinit var mHandler: Handler
-    private var theTimerGoesOn = false
-    lateinit var  mPendingIntent: PendingIntent
     companion object {
         const val NOTIFICATION_ID = 101
         const val CHANNEL_ID = "channelID"
     }
-
 
     // база
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,8 +38,7 @@ class MainActivity : AppCompatActivity() {
         // События
 
         binding.btnStart.setOnClickListener(){
-            //goStart()
-            startAlarm()
+            goStart()
         }
 
         // on Change
@@ -68,48 +58,33 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun startAlarm(){
-        val mAlarmManager: AlarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    override fun onStart() {
+        super.onStart()
+//        TODO("Перерасчет оставшегося времени ")
+    }
 
+    fun onAlarm(){
+        Toast.makeText(this, "Alarmed", Toast.LENGTH_SHORT).show()
+        scheduler.onAlarm() //todo pass num
+
+
+    }
+
+    private fun startAlarm(myMinutes: Int){
+        val mAlarmManager: AlarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(this, MyScheduledReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(
             this, 0,
             intent, PendingIntent.FLAG_ONE_SHOT
         )
-        mAlarmManager.set(
-            AlarmManager.RTC_WAKEUP, System.currentTimeMillis()
-                    + 10 * 1000, pendingIntent
-        )
-
-
- /*
-        val myIntent = Intent(
-            this@MainActivity,
-            ServiceClock::class.java
-        )
-
-        mPendingIntent = PendingIntent.getService(
-            this@MainActivity, 0,
-            myIntent, 0
-        )
-
-        val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
-
         val calendar = Calendar.getInstance()
         calendar.timeInMillis = System.currentTimeMillis()
-        calendar.add(Calendar.SECOND, 10)
+        calendar.add(Calendar.MINUTE, myMinutes)
 
-        alarmManager[AlarmManager.RTC_WAKEUP, calendar.timeInMillis] = mPendingIntent
+        mAlarmManager.set(
+            AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), pendingIntent)
 
-        Toast.makeText(
-            this@MainActivity, "Устанавливаем сигнализацию",
-            Toast.LENGTH_LONG
-        ).show()
-*/
     }
-
-
-
 
     private fun notificateMe(){
         // Создаём уведомление
@@ -127,8 +102,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
-
     private fun updateMenu(){
 
         if (timerAdaptor.count == 0){
@@ -137,7 +110,7 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
-        if (theTimerGoesOn){
+        if (scheduler.isOn()){
             binding.btnStart.visibility = View.GONE
             binding.btnStop.visibility = View.VISIBLE
         }
@@ -156,48 +129,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun goStart() {
-        if (theTimerGoesOn) return
-        scheduler.startWork()
+        if (scheduler.isOn()) return
+        scheduler.startWork() //todo проверяем что включились
         timerAdaptor.notifyDataSetChanged()
-
-        // заводим поток
-        mHandler = Handler(Looper.getMainLooper())
-        mHandler.post(updateTextTask)
-        theTimerGoesOn = true
         updateMenu()
+        startAlarm(scheduler.getTimeToEndEtap())
     }
 
     // Остановка всех процессов
     private fun stopCook(){
-        mHandler.removeCallbacks(updateTextTask)
         scheduler.stopWork()
         timerAdaptor.notifyDataSetChanged()
-        theTimerGoesOn = false
         updateMenu()
-    }
-
-    private val updateTextTask = object : Runnable {
-        override fun run() {
-            decInterval()
-            mHandler.postDelayed(this, 1000)
-        }
-    }
-
-    private fun decInterval () {
-        when (scheduler.decTime()) {
-            Scheduler.ScheduleEvents.SHDL_NORMAL -> timerAdaptor.notifyDataSetChanged()
-            Scheduler.ScheduleEvents.SHDL_FINSTAGE -> {
-                notificateMe()
-                timerAdaptor.notifyDataSetChanged()
-            }
-            Scheduler.ScheduleEvents.SHDL_FIN_ALL -> {
-                stopCook() //
-                timerAdaptor.notifyDataSetChanged()
-            }
-
-        }
-
-        Log.d("MyLog", "dec")
     }
 
 

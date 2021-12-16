@@ -1,6 +1,7 @@
 package ru.fxy7ci.schf
 
 import android.R
+import android.app.Activity
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -15,6 +16,9 @@ import android.net.Uri
 class MyScheduledReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
+
+        val activity: MainActivity = context as MainActivity
+        activity.onAlarm()
 
         val scheduledIntent = Intent(context, MainActivity::class.java)
         scheduledIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

@@ -1,11 +1,20 @@
 package ru.fxy7ci.schf
-// Класс манипуляции с расписанием
 
+val scheduler = Scheduler()
+
+// Класс манипуляции с расписанием
 class Scheduler() {
     private var listTimers : MutableList<TimerHolder> = mutableListOf(TimerHolder())
+    private var curPos: Int = -1
 
     init {
         listTimers.clear()
+    }
+
+
+    fun onAlarm() {
+        curPos++
+
     }
 
     fun add (myVal: TimerHolder) {
@@ -13,10 +22,9 @@ class Scheduler() {
         stopWork()
     }
 
-    fun getCurTemp(): Byte{
-        return 20
+    fun getTimeToEndEtap(): Int {
+        return listTimers[curPos].timeDecMins * 1 //todo  * 10
     }
-
 
     fun clearList(){
         listTimers.clear()
@@ -26,49 +34,25 @@ class Scheduler() {
     fun startWork(){
         if (listTimers.count() == 0) return
         stopWork()
-        listTimers[0].downCounter = listTimers[0].timeDecMins.toInt() * 10
+        //listTimers[0].downCounter = listTimers[0].timeDecMins.toInt() * 10
     }
 
     fun stopWork(){
         for (timer in listTimers ) timer.downCounter = 0
     }
 
-    fun decTime(): ScheduleEvents {
-        var cntTimers = 0
-        for (timer in listTimers ) {
-            cntTimers++
-            if (timer.downCounter != 0){
-                if (--timer.downCounter == 0) {
-                    if (cntTimers != listTimers.count()) {
-                        // заряжаем следующий отсчет
-                        listTimers[cntTimers].downCounter =
-                            listTimers[cntTimers].timeDecMins.toInt() * 10
-                        return ScheduleEvents.SHDL_FINSTAGE
-                    }
-                    else
-                        return ScheduleEvents.SHDL_FIN_ALL
-                }
-                return ScheduleEvents.SHDL_NORMAL
-            }
-        }
-        return ScheduleEvents.SHDL_FIN_ALL
-    }
 
-    fun getList(): MutableList<TimerHolder>  {
-        return listTimers
-    }
+    fun getList()= listTimers
+    fun isOn() = curPos != -1
 
     //TODO функции записи чтения с диска
 
-
-
+    // загрузка
+    // сохранение
     enum class ScheduleEvents {
         SHDL_NORMAL,
         SHDL_FINSTAGE,
         SHDL_FIN_ALL
-
     }
-
-
 
 }
