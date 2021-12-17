@@ -93,8 +93,8 @@ class MainActivity : AppCompatActivity() {
         )
         val calendar = Calendar.getInstance()
         calendar.timeInMillis = System.currentTimeMillis()
-        calendar.add(Calendar.SECOND, myMinutes)
-        // TODO calendar.add(Calendar.MINUTE, myMinutes)
+        // calendar.add(Calendar.SECOND, myMinutes)
+        calendar.add(Calendar.MINUTE, myMinutes)
 
         mAlarmManager.set(
             AlarmManager.RTC_WAKEUP,  calendar.timeInMillis, pendingIntent)
@@ -173,7 +173,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             2->{
-                scheduler.add(TimerHolder(52,6))
+                scheduler.add(TimerHolder(52,3))
                 scheduler.add(TimerHolder(65,5))
                 scheduler.add(TimerHolder(72,3))
                 scheduler.add(TimerHolder(82,4))
