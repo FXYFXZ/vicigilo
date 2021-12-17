@@ -1,7 +1,6 @@
 package ru.fxy7ci.schf
 
 import android.R
-import android.app.Activity
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -11,14 +10,15 @@ import android.content.Intent
 import android.graphics.BitmapFactory
 import android.media.RingtoneManager
 import android.net.Uri
+import android.os.Vibrator
 
 
-class MyScheduledReceiver : BroadcastReceiver() {
+class MyScheduledReceiver() : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
+        // дергаем через интент
+        context.sendBroadcast(Intent("INTERNET_LOST"))
 
-        val activity: MainActivity = context as MainActivity
-        activity.onAlarm()
 
         val scheduledIntent = Intent(context, MainActivity::class.java)
         scheduledIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -51,5 +51,12 @@ class MyScheduledReceiver : BroadcastReceiver() {
             .build()
 
           notificationManager.notify(1, notification)
+
+
+        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        vibrator.vibrate(200)
+
+
     }
 }
+

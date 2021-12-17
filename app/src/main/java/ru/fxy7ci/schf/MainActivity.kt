@@ -13,8 +13,12 @@ import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import ru.fxy7ci.schf.databinding.ActivityMainBinding
 import java.util.*
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
+
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -37,7 +41,7 @@ class MainActivity : AppCompatActivity() {
         updateMenu()
         // События
 
-        binding.btnStart.setOnClickListener(){
+        binding.btnStart.setOnClickListener {
             goStart()
         }
 
@@ -56,18 +60,29 @@ class MainActivity : AppCompatActivity() {
             stopCook()
         }
 
+
+        registerReceiver(broadcastReceiver,  IntentFilter("INTERNET_LOST")) //TODO rename
+
+
+    }
+
+
+    var broadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            // Alarmilo ekis...
+            scheduler.stopWork()
+            updateMenu()
+            // internet lost alert dialog method call from here...
+
+
+
+        }
     }
 
     override fun onStart() {
         super.onStart()
+        updateMenu()
 //        TODO("Перерасчет оставшегося времени ")
-    }
-
-    fun onAlarm(){
-        Toast.makeText(this, "Alarmed", Toast.LENGTH_SHORT).show()
-        scheduler.onAlarm() //todo pass num
-
-
     }
 
     private fun startAlarm(myMinutes: Int){
@@ -79,10 +94,11 @@ class MainActivity : AppCompatActivity() {
         )
         val calendar = Calendar.getInstance()
         calendar.timeInMillis = System.currentTimeMillis()
-        calendar.add(Calendar.MINUTE, myMinutes)
+        calendar.add(Calendar.SECOND, myMinutes)
+        // TODO calendar.add(Calendar.MINUTE, myMinutes)
 
         mAlarmManager.set(
-            AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), pendingIntent)
+            AlarmManager.RTC_WAKEUP,  calendar.timeInMillis, pendingIntent)
 
     }
 
@@ -120,8 +136,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
-
     override fun onDestroy() {
         // убираем все процессы, освобождаем ресурсы
         stopCook()
@@ -130,10 +144,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun goStart() {
         if (scheduler.isOn()) return
-        scheduler.startWork() //todo проверяем что включились
+        if (!scheduler.startWork()) return
+        startAlarm(scheduler.getTimeToEndEtap())
         timerAdaptor.notifyDataSetChanged()
         updateMenu()
-        startAlarm(scheduler.getTimeToEndEtap())
     }
 
     // Остановка всех процессов
@@ -155,13 +169,13 @@ class MainActivity : AppCompatActivity() {
             }
 
             1->{
-                scheduler.add(TimerHolder(52,1))
-                scheduler.add(TimerHolder(65,2))
+                scheduler.add(TimerHolder(52,2))
+                scheduler.add(TimerHolder(65,3))
             }
 
             2->{
-                scheduler.add(TimerHolder(52,1))
-                scheduler.add(TimerHolder(65,2))
+                scheduler.add(TimerHolder(52,6))
+                scheduler.add(TimerHolder(65,5))
                 scheduler.add(TimerHolder(72,3))
                 scheduler.add(TimerHolder(82,4))
             }
@@ -222,3 +236,5 @@ class CustomAdapter(var context: Context, var countryNames: List<String>) :
         return newView
     }
 }
+
+

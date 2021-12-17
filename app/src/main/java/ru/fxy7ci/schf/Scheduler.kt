@@ -3,6 +3,7 @@ package ru.fxy7ci.schf
 val scheduler = Scheduler()
 
 // Класс манипуляции с расписанием
+
 class Scheduler() {
     private var listTimers : MutableList<TimerHolder> = mutableListOf(TimerHolder())
     private var curPos: Int = -1
@@ -18,12 +19,13 @@ class Scheduler() {
     }
 
     fun add (myVal: TimerHolder) {
+        if (isOn()) return
         listTimers.add(myVal)
         stopWork()
     }
 
     fun getTimeToEndEtap(): Int {
-        return listTimers[curPos].timeDecMins * 1 //todo  * 10
+        return listTimers[curPos].timeDecMins * 10
     }
 
     fun clearList(){
@@ -31,14 +33,14 @@ class Scheduler() {
     }
 
 
-    fun startWork(){
-        if (listTimers.count() == 0) return
-        stopWork()
-        //listTimers[0].downCounter = listTimers[0].timeDecMins.toInt() * 10
+    fun startWork(): Boolean{
+        if (listTimers.count() == 0) return false
+        curPos = 0 // стартовая позиция
+        return true
     }
 
     fun stopWork(){
-        for (timer in listTimers ) timer.downCounter = 0
+        curPos = -1
     }
 
 
