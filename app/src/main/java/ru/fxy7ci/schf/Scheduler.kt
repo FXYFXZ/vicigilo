@@ -1,5 +1,7 @@
 package ru.fxy7ci.schf
 
+import java.util.*
+
 val scheduler = Scheduler()
 
 // Класс манипуляции с расписанием
@@ -12,11 +14,8 @@ class Scheduler() {
         listTimers.clear()
     }
 
+    fun getCurPos() = curPos
 
-    fun onAlarm() {
-        curPos++
-
-    }
 
     fun add (myVal: TimerHolder) {
         if (isOn()) return
@@ -24,8 +23,13 @@ class Scheduler() {
         stopWork()
     }
 
+    // сколько минут до следущего этапа
     fun getTimeToEndEtap(): Int {
-        return listTimers[curPos].timeDecMins * 10
+        if (curPos > listTimers.count()-1) {
+            curPos = -1
+            return 0
+        }
+        return listTimers[curPos++].timeDecMins * 10
     }
 
     fun clearList(){

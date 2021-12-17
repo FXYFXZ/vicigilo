@@ -18,6 +18,7 @@ import ru.fxy7ci.schf.databinding.ActivityMainBinding
 import java.util.*
 import android.content.BroadcastReceiver
 import android.content.IntentFilter
+import android.util.Log
 
 
 class MainActivity : AppCompatActivity() {
@@ -33,8 +34,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
         makeSpinner()
 
+        //todo восстановление предыдущих значений scheduler
         timerAdaptor = TimeGridAdapter(this, scheduler.getList())
         binding.lvTimers.adapter = timerAdaptor
 
@@ -60,9 +63,7 @@ class MainActivity : AppCompatActivity() {
             stopCook()
         }
 
-
         registerReceiver(broadcastReceiver,  IntentFilter("INTERNET_LOST")) //TODO rename
-
 
     }
 
@@ -70,19 +71,17 @@ class MainActivity : AppCompatActivity() {
     var broadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             // Alarmilo ekis...
-            scheduler.stopWork()
+            val nextMins = scheduler.getTimeToEndEtap()
+            if (nextMins !=0) startAlarm(nextMins)
+            timerAdaptor.notifyDataSetChanged()
             updateMenu()
-            // internet lost alert dialog method call from here...
-
-
-
         }
     }
 
     override fun onStart() {
         super.onStart()
+        timerAdaptor.notifyDataSetChanged()
         updateMenu()
-//        TODO("Перерасчет оставшегося времени ")
     }
 
     private fun startAlarm(myMinutes: Int){
