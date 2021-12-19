@@ -9,7 +9,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <TextView
             android:id="@+id/tvSelected"
@@ -18,37 +19,75 @@
             android:text="TextView" />
 
         <Spinner
-            android:id="@+id/spCity"
+            android:id="@+id/spRecipes"
             android:layout_width="match_parent"
             android:layout_height="50dp"
             android:layout_marginStart="1dp"
             android:layout_marginTop="32dp"
             android:layout_marginEnd="1dp"
             android:background="@color/purple_200"
-            android:dropDownWidth="wrap_content" />
+            android:dropDownWidth="wrap_content"
+            android:visibility="gone" />
 
         <ListView
             android:id="@+id/lvTimers"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="250dp" />
+
+
+        <LinearLayout
+            android:id="@+id/lyAdd"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/edTemperature"
+                android:layout_width="90dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ems="10"
+                android:hint="@string/btn_hint_temp"
+                android:maxLength="3"
+                android:imeOptions="actionNext"
+                android:inputType="numberDecimal" />
+
+            <EditText
+                android:id="@+id/edTime"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:ems="10"
+                android:maxLength="3"
+                android:imeOptions="actionNext"
+                android:hint="@string/btn_hint_time"
+                android:inputType="numberDecimal" />
+
+            <Button
+                android:id="@+id/btnAdd"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="3
+"
+                android:text="@string/btn_add" />
+
+        </LinearLayout>
 
         <Button
             android:id="@+id/btnStart"
             android:layout_width="match_parent"
-            android:layout_height="97dp"
+            android:layout_height="95dp"
             android:text="@string/btn_go_start"
-            android:textSize="24sp"
-            tools:layout_editor_absoluteY="181dp" />
+            android:textSize="24sp" />
 
         <Button
             android:id="@+id/btnStop"
-            android:layout_height="97dp"
-            android:textSize="24sp"
             android:layout_width="match_parent"
+            android:layout_height="97dp"
             android:text="@string/btn_go_stop"
             android:textColor="@color/design_default_color_error"
+            android:textSize="24sp"
             android:visibility="gone" />
-
 
     </LinearLayout>
 

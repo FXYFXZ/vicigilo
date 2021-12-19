@@ -6,24 +6,20 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import ru.fxy7ci.schf.databinding.ActivityMainBinding
 import java.util.*
 import android.content.BroadcastReceiver
 import android.content.IntentFilter
-import android.util.Log
 
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     lateinit var timerAdaptor : TimeGridAdapter
+
     companion object {
         const val NOTIFICATION_ID = 101
         const val CHANNEL_ID = "channelID"
@@ -35,37 +31,62 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        makeSpinner()
-
         //todo восстановление предыдущих значений scheduler
         timerAdaptor = TimeGridAdapter(this, scheduler.getList())
         binding.lvTimers.adapter = timerAdaptor
 
         updateMenu()
-        // События
+        eventsMake()
 
-        binding.btnStart.setOnClickListener {
-            goStart()
-        }
-
-        // on Change
-        binding.spCity.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                binding.tvSelected.text = "Selected ${position} ${id}"
-                makeTimers(position)
-                updateMenu()
-            }
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-            }
-        }
-
-        binding.btnStop.setOnClickListener(){
-            stopCook()
-        }
 
         registerReceiver(broadcastReceiver,  IntentFilter("INTERNET_LOST")) //TODO rename
 
     }
+
+    // Events ---------------------------------------
+    private fun eventsMake(){
+        binding.btnAdd.setOnClickListener{
+            val temperature = binding.edTemperature.text.toString().toInt()
+            val timeDecs = binding.edTime.text.toString().toInt()
+
+            if (temperature in  25..100  && timeDecs in 1..255    ) {
+                scheduler.add(TimerHolder(temperature.toByte(),(timeDecs/10).toByte()))
+                timerAdaptor.notifyDataSetChanged()
+                updateMenu()
+            }
+
+            binding.edTemperature.text.clear()
+            binding.edTime.text.clear()
+            binding.edTemperature.requestFocus()
+
+        }
+
+        //todo в одну кнопку
+        binding.btnStart.setOnClickListener {
+            goStart()
+        }
+        binding.btnStop.setOnClickListener(){
+            stopCook()
+        }
+
+
+        // Recipe change
+//        binding.spRecipes.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
+//            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+//                binding.tvSelected.text = "Selected ${position} ${id}"
+//                makeTimers(position)
+//                updateMenu()
+//            }
+//            override fun onNothingSelected(parent: AdapterView<*>?) {
+//            }
+//        }
+
+    }
+
+
+
+
+
 
 
     var broadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
@@ -128,10 +149,12 @@ class MainActivity : AppCompatActivity() {
         if (scheduler.isOn()){
             binding.btnStart.visibility = View.GONE
             binding.btnStop.visibility = View.VISIBLE
+            binding.lyAdd.visibility = View.GONE
         }
         else {
             binding.btnStart.visibility =  View.VISIBLE
             binding.btnStop.visibility = View.GONE
+            binding.lyAdd.visibility = View.VISIBLE
         }
     }
 
@@ -187,53 +210,6 @@ class MainActivity : AppCompatActivity() {
 //        binding.lvTimers.adapter = timerAdaptor
     }
 
-    // комбобокс
-    private fun makeSpinner() {
-        //val cities = resources.getStringArray(R.array.arCities)
-        val lstWeek = Arrays.asList("Пшеница", "Гречка", "Чечевица")
-
-        val adapter = CustomAdapter(this, lstWeek)
-
-        binding.spCity.adapter = adapter
-            //binding.spCity.setPromptId(ЭЭ)
-//        binding.spCity.setSelection(2, true)
-
-    }
-
-} // CLASS
-
-
-class CustomAdapter(var context: Context, var countryNames: List<String>) :
-    BaseAdapter() {
-    var inFlater: LayoutInflater = LayoutInflater.from(context)
-
-    override fun getCount(): Int {
-        return countryNames.size
-    }
-
-    override fun getItem(i: Int): Any {
-        return countryNames[i]
-    }
-
-    override fun getItemId(i: Int): Long {
-        return i.toLong()
-    }
-
-    override fun getView(i: Int, view: View?, viewGroup: ViewGroup): View {
-        val newView : View
-        if  (view == null) {
-            newView = inFlater.inflate(R.layout.boxrow, null)
-        }
-        else newView = view
-        val icon = newView.findViewById<View>(R.id.icon) as ImageView
-        val names = newView.findViewById<View>(R.id.town) as TextView
-        if (i==1)
-            icon.setImageResource(R.drawable.ic_launcher_foreground)
-        else
-            icon.setImageResource(R.drawable.ic_city)
-        names.text = countryNames[i]
-        return newView
-    }
 }
 
 
