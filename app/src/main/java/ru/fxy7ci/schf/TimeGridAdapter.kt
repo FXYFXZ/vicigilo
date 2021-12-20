@@ -38,7 +38,7 @@ class TimeGridAdapter (var context: Context, var timerList: List<TimerHolder>) :
         temperature.text = timerList[position].temperature.toString() + "º"
 
         val timeSet = newView.findViewById<View>(R.id.tvTimeSet) as TextView
-        val minText = context.getResources().getString(R.string.txt_minutes).format(timerList[position].timeDecMins*10)
+        val minText = context.getResources().getString(R.string.txt_minutes).format(timerList[position].timeDecMins)
         timeSet.text = minText
 
         val progress = newView.findViewById<View>(R.id.progressBar) as ProgressBar

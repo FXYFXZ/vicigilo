@@ -14,14 +14,22 @@ import ru.fxy7ci.schf.databinding.ActivityMainBinding
 import java.util.*
 import android.content.BroadcastReceiver
 import android.content.IntentFilter
+import android.view.Menu
+import android.view.MenuInflater
 import android.widget.Toast
+import android.content.SharedPreferences
+
+
+
 
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     lateinit var timerAdaptor : TimeGridAdapter
+    lateinit var sp: SharedPreferences
 
     companion object {
+        const val SETT_NAME = "mySettings"
         const val NOTIFICATION_ID = 101
         const val CHANNEL_ID = "channelID"
     }
@@ -32,16 +40,18 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        //todo восстановление предыдущих значений scheduler
+        sp = getSharedPreferences(SETT_NAME, Context.MODE_PRIVATE);
         timerAdaptor = TimeGridAdapter(this, scheduler.getList())
         binding.lvTimers.adapter = timerAdaptor
-
         updateMenu()
         eventsMake()
-
-
         registerReceiver(broadcastReceiver,  IntentFilter("INTERNET_LOST")) //TODO rename
+    }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        val inflater: MenuInflater = menuInflater
+        inflater.inflate(R.menu.topmenu,menu)
+        return super.onCreateOptionsMenu(menu)
     }
 
     // Events ---------------------------------------
@@ -54,7 +64,7 @@ class MainActivity : AppCompatActivity() {
                 val timeDecs = binding.edTime.text.toString().toInt()
 
                 if (temperature in  25..100  && timeDecs in 1..255    ) {
-                    scheduler.add(TimerHolder(temperature.toByte(),(timeDecs/10).toByte()))
+                    scheduler.add(TimerHolder(temperature.toByte(),timeDecs))
                     timerAdaptor.notifyDataSetChanged()
                     updateMenu()
                 }
@@ -110,6 +120,11 @@ class MainActivity : AppCompatActivity() {
         updateMenu()
     }
 
+    override fun onPause() {
+        saveData()
+        super.onPause()
+    }
+
     private fun startAlarm(myMinutes: Int){
         val mAlarmManager: AlarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(this, MyScheduledReceiver::class.java)
@@ -126,6 +141,16 @@ class MainActivity : AppCompatActivity() {
             AlarmManager.RTC_WAKEUP,  calendar.timeInMillis, pendingIntent)
 
     }
+
+    // сохраняем всё состояние
+    private fun saveData(){
+        val lst: MutableSet<String> = MutableList()
+        lst.add("RJirf")
+        val e = sp.edit()
+        e.putStringSet("timers",lst)
+        e.apply()
+    }
+
 
     private fun notificateMe(){
         // Создаём уведомление

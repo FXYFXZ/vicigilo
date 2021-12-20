@@ -29,7 +29,7 @@ class Scheduler() {
             curPos = -1
             return 0
         }
-        return listTimers[curPos++].timeDecMins * 10
+        return listTimers[curPos++].timeDecMins
     }
 
     fun clearList(){

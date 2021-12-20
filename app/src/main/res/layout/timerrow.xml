@@ -8,7 +8,7 @@
         android:id="@+id/ordnum"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="20dp"
+        android:layout_marginLeft="10dp"
         android:layout_marginRight="20dp"
         android:text="1"
         android:textAlignment="center"
@@ -31,14 +31,21 @@
         android:textSize="34sp" />
 
     <ProgressBar
-        android:id="@+id/progressBar"
+        android:id="@+id/progressBar2"
         style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:layout_weight="1" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="@android:style/Widget.DeviceDefault.Light.ProgressBar.Large"
+        android:layout_width="40dp"
         android:layout_height="41dp"
         android:layout_weight="1"
         android:maxHeight="25dip"
         android:minHeight="25dip"
-        android:progress="50"
+        android:progress="25"
         android:scrollbarAlwaysDrawHorizontalTrack="true"
         android:secondaryProgressTint="@color/purple_500" />
 
