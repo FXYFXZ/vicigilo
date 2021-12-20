@@ -14,6 +14,7 @@ import ru.fxy7ci.schf.databinding.ActivityMainBinding
 import java.util.*
 import android.content.BroadcastReceiver
 import android.content.IntentFilter
+import android.widget.Toast
 
 
 class MainActivity : AppCompatActivity() {
@@ -46,19 +47,23 @@ class MainActivity : AppCompatActivity() {
     // Events ---------------------------------------
     private fun eventsMake(){
         binding.btnAdd.setOnClickListener{
-            val temperature = binding.edTemperature.text.toString().toInt()
-            val timeDecs = binding.edTime.text.toString().toInt()
+            if (binding.edTemperature.text.isNotEmpty() &&
+                binding.edTime.text.isNotEmpty()
+            ){
+                val temperature = binding.edTemperature.text.toString().toInt()
+                val timeDecs = binding.edTime.text.toString().toInt()
 
-            if (temperature in  25..100  && timeDecs in 1..255    ) {
-                scheduler.add(TimerHolder(temperature.toByte(),(timeDecs/10).toByte()))
-                timerAdaptor.notifyDataSetChanged()
-                updateMenu()
+                if (temperature in  25..100  && timeDecs in 1..255    ) {
+                    scheduler.add(TimerHolder(temperature.toByte(),(timeDecs/10).toByte()))
+                    timerAdaptor.notifyDataSetChanged()
+                    updateMenu()
+                }
+                binding.edTemperature.text.clear()
+                binding.edTime.text.clear()
+                binding.edTemperature.requestFocus()
+            }else {
+                Toast.makeText(this, resources.getString(R.string.msg_noval), Toast.LENGTH_SHORT).show()
             }
-
-            binding.edTemperature.text.clear()
-            binding.edTime.text.clear()
-            binding.edTemperature.requestFocus()
-
         }
 
         //todo в одну кнопку
@@ -177,37 +182,6 @@ class MainActivity : AppCompatActivity() {
         scheduler.stopWork()
         timerAdaptor.notifyDataSetChanged()
         updateMenu()
-    }
-
-
-    // Test procedure
-    private fun makeTimers(myPosition : Int){
-        scheduler.stopWork()
-        scheduler.clearList()
-
-        when(myPosition){
-            0->{
-                scheduler.add(TimerHolder(52,1))
-            }
-
-            1->{
-                scheduler.add(TimerHolder(52,2))
-                scheduler.add(TimerHolder(65,3))
-            }
-
-            2->{
-                scheduler.add(TimerHolder(52,3))
-                scheduler.add(TimerHolder(65,5))
-                scheduler.add(TimerHolder(72,3))
-                scheduler.add(TimerHolder(82,4))
-            }
-        }
-
-        timerAdaptor.notifyDataSetChanged()
-
-
-//        timerAdaptor = TimeGridAdapter(this, scheduler.getList())
-//        binding.lvTimers.adapter = timerAdaptor
     }
 
 }

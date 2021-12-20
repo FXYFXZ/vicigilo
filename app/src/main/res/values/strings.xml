@@ -4,7 +4,7 @@
 
     <string name="btn_hint_temp">25-100º</string>
     <string name="btn_hint_time">1-200мин</string>
-
+    <string name="msg_noval">Заполните значения</string>
 
     <string name="btn_go_start">ПУСК</string>
     <string name="btn_add">ADD</string>
