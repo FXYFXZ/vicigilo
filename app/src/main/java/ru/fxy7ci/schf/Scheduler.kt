@@ -1,10 +1,5 @@
 package ru.fxy7ci.schf
 
-import android.util.Log
-import android.R.string
-
-
-
 
 val scheduler = Scheduler()
 
@@ -28,6 +23,11 @@ class Scheduler() {
         stopWork()
     }
 
+    fun delete( myPosition:Int) {
+        if (isOn()) return
+        listTimers.removeAt(myPosition)
+    }
+
     // сколько минут до следущего этапа
     fun getTimeToEndEtap(): Int {
         if (curPos > listTimers.count()-1) {
@@ -46,20 +46,24 @@ class Scheduler() {
         val mList : MutableSet<String> = mutableSetOf()
         var itemNum = 0
         for (item in listTimers) {
+            val wm = if(itemNum == curPos) "1" else "0"
             mList.add("${itemNum++};${item.temperature};${item.timeMins}")
         }
         return mList
     }
 
     fun loadFromStringSet(mySet: MutableSet<String>) {
+        clearList()
+        stopWork()
         if (mySet.count()==0) return
+        var cPos = 0
         for (str in mySet.sorted()){ // до 10
-            val stringArray: List<String> = str.split(";")
-            add(TimerHolder(stringArray[1].toByte(), stringArray[1].toInt()))
+            val sArray: List<String> = str.split(";")
+            listTimers.add(TimerHolder(sArray[1].toByte(), sArray[1].toInt()))
+            if(sArray[2] == "1") curPos = cPos
+            cPos++
         }
     }
-
-
 
     fun startWork(): Boolean{
         if (listTimers.count() == 0) return false

@@ -17,10 +17,12 @@ import android.widget.Toast
 import android.content.SharedPreferences
 import android.util.Log
 import android.view.*
+import android.widget.AdapterView.AdapterContextMenuInfo
+
 
 class MainActivity : AppCompatActivity() {  // ========================================== MAIN =====
     private lateinit var binding: ActivityMainBinding
-    lateinit var timerAdaptor : TimeGridAdapter
+    lateinit var timerAdapter : TimeGridAdapter
     lateinit var sp: SharedPreferences
 
     companion object {
@@ -37,8 +39,8 @@ class MainActivity : AppCompatActivity() {  // =================================
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         sp = getSharedPreferences(SETT_NAME, Context.MODE_PRIVATE);
-        timerAdaptor = TimeGridAdapter(this, scheduler.getList())
-        binding.lvTimers.adapter = timerAdaptor
+        timerAdapter = TimeGridAdapter(this, scheduler.getList())
+        binding.lvTimers.adapter = timerAdapter
         updateMenu()
         eventsMake()
         loadData()
@@ -64,7 +66,7 @@ class MainActivity : AppCompatActivity() {  // =================================
 
                 if (temperature in  25..100  && timeDecs in 1..255    ) {
                     scheduler.add(TimerHolder(temperature.toByte(),timeDecs))
-                    timerAdaptor.notifyDataSetChanged()
+                    timerAdapter.notifyDataSetChanged()
                     updateMenu()
                 }
                 binding.edTemperature.text.clear()
@@ -102,7 +104,7 @@ class MainActivity : AppCompatActivity() {  // =================================
             R.id.menuSaveList -> saveData()
             R.id.clearTimers -> {
                 scheduler.clearList()
-                timerAdaptor.notifyDataSetChanged()
+                timerAdapter.notifyDataSetChanged()
                 //todo сохраняем
             }
         }
@@ -115,8 +117,10 @@ class MainActivity : AppCompatActivity() {  // =================================
         menuInfo: ContextMenu.ContextMenuInfo?
     ) {
         if (v?.id == R.id.lvTimers){
+//            val info = menuInfo as AdapterContextMenuInfo
+//            val position = info.position
             menu?.add(0,0,1,R.string.сm_launch)
-            menu?.add(0,1,1,R.string.cm_delete)
+            if (!scheduler.isOn()) menu?.add(0,1,1,R.string.cm_delete)
         }
         else
             super.onCreateContextMenu(menu, v, menuInfo)
@@ -124,31 +128,32 @@ class MainActivity : AppCompatActivity() {  // =================================
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
         if  (item.groupId == 0) {
+            val info = item.menuInfo as AdapterContextMenuInfo
+            val index = info.position
             when (item.itemId) {
-                0 -> launchTime()
-                1 -> deleteTime()
+                0 -> launchTime(index)
+                1 -> deleteTime(index)
             }
         }
-        Log.d("MyLog", "|" + item.itemId)
         return super.onContextItemSelected(item)
     }
 
-    private fun launchTime() {
-
+    private fun launchTime(myItemID : Int) {
+        Toast.makeText(this, "Launch: ${myItemID}", Toast.LENGTH_SHORT).show()
     }
 
-    private fun deleteTime() {
-
-
+    private fun deleteTime(myItemID : Int) {
+       scheduler.delete(myItemID)
+       timerAdapter.notifyDataSetChanged()
+       saveData()
     }
-
 
     var broadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             // Alarmilo ekis...
             val nextMins = scheduler.getTimeToEndEtap()
             if (nextMins !=0) startAlarm(nextMins)
-            timerAdaptor.notifyDataSetChanged()
+            timerAdapter.notifyDataSetChanged()
             updateMenu()
         }
     }
@@ -207,7 +212,7 @@ class MainActivity : AppCompatActivity() {  // =================================
 
     private fun updateMenu(){
 
-        if (timerAdaptor.count == 0){
+        if (timerAdapter.count == 0){
             binding.btnStart.visibility = View.GONE
             binding.btnStop.visibility = View.GONE
             return
@@ -235,14 +240,14 @@ class MainActivity : AppCompatActivity() {  // =================================
         if (scheduler.isOn()) return
         if (!scheduler.startWork()) return
         startAlarm(scheduler.getTimeToEndEtap())
-        timerAdaptor.notifyDataSetChanged()
+        timerAdapter.notifyDataSetChanged()
         updateMenu()
     }
 
     // Остановка всех процессов
     private fun stopCook(){
         scheduler.stopWork()
-        timerAdaptor.notifyDataSetChanged()
+        timerAdapter.notifyDataSetChanged()
         updateMenu()
     }
 
