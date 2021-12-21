@@ -6,7 +6,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -14,38 +13,37 @@ import ru.fxy7ci.schf.databinding.ActivityMainBinding
 import java.util.*
 import android.content.BroadcastReceiver
 import android.content.IntentFilter
-import android.view.Menu
-import android.view.MenuInflater
 import android.widget.Toast
 import android.content.SharedPreferences
+import android.util.Log
+import android.view.*
 
-
-
-
-
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity() {  // ========================================== MAIN =====
     private lateinit var binding: ActivityMainBinding
     lateinit var timerAdaptor : TimeGridAdapter
     lateinit var sp: SharedPreferences
 
     companion object {
         const val SETT_NAME = "mySettings"
+        const val SETT_MAIN_LIST = "mainlist"
+
         const val NOTIFICATION_ID = 101
         const val CHANNEL_ID = "channelID"
     }
 
     // база
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?) { // =============================== CREATE
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         sp = getSharedPreferences(SETT_NAME, Context.MODE_PRIVATE);
         timerAdaptor = TimeGridAdapter(this, scheduler.getList())
         binding.lvTimers.adapter = timerAdaptor
         updateMenu()
         eventsMake()
+        loadData()
         registerReceiver(broadcastReceiver,  IntentFilter("INTERNET_LOST")) //TODO rename
+        registerForContextMenu(binding.lvTimers)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -53,6 +51,7 @@ class MainActivity : AppCompatActivity() {
         inflater.inflate(R.menu.topmenu,menu)
         return super.onCreateOptionsMenu(menu)
     }
+
 
     // Events ---------------------------------------
     private fun eventsMake(){
@@ -98,10 +97,50 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.menuSaveList -> saveData()
+            R.id.clearTimers -> {
+                scheduler.clearList()
+                timerAdaptor.notifyDataSetChanged()
+                //todo сохраняем
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    override fun onCreateContextMenu(
+        menu: ContextMenu?,
+        v: View?,
+        menuInfo: ContextMenu.ContextMenuInfo?
+    ) {
+        if (v?.id == R.id.lvTimers){
+            menu?.add(0,0,1,R.string.сm_launch)
+            menu?.add(0,1,1,R.string.cm_delete)
+        }
+        else
+            super.onCreateContextMenu(menu, v, menuInfo)
+    }
+
+    override fun onContextItemSelected(item: MenuItem): Boolean {
+        if  (item.groupId == 0) {
+            when (item.itemId) {
+                0 -> launchTime()
+                1 -> deleteTime()
+            }
+        }
+        Log.d("MyLog", "|" + item.itemId)
+        return super.onContextItemSelected(item)
+    }
+
+    private fun launchTime() {
+
+    }
+
+    private fun deleteTime() {
 
 
-
-
+    }
 
 
     var broadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
@@ -116,13 +155,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        timerAdaptor.notifyDataSetChanged()
         updateMenu()
-    }
-
-    override fun onPause() {
-        saveData()
-        super.onPause()
     }
 
     private fun startAlarm(myMinutes: Int){
@@ -144,11 +177,15 @@ class MainActivity : AppCompatActivity() {
 
     // сохраняем всё состояние
     private fun saveData(){
-        val lst: MutableSet<String> = MutableList()
-        lst.add("RJirf")
+        val lst  = scheduler.getListAsStringSet()
+        if (lst.count() ==0) return
         val e = sp.edit()
-        e.putStringSet("timers",lst)
+        e.putStringSet(SETT_MAIN_LIST,lst)
         e.apply()
+    }
+
+    private fun loadData(){
+        sp.getStringSet(SETT_MAIN_LIST, null)?.let {scheduler.loadFromStringSet(it)}
     }
 
 

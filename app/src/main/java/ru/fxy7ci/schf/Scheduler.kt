@@ -1,6 +1,10 @@
 package ru.fxy7ci.schf
 
-import java.util.*
+import android.util.Log
+import android.R.string
+
+
+
 
 val scheduler = Scheduler()
 
@@ -19,6 +23,7 @@ class Scheduler() {
 
     fun add (myVal: TimerHolder) {
         if (isOn()) return
+        if (listTimers.count() >= 10) return //todo если будет больше, переделать функцию сохранения
         listTimers.add(myVal)
         stopWork()
     }
@@ -29,12 +34,31 @@ class Scheduler() {
             curPos = -1
             return 0
         }
-        return listTimers[curPos++].timeDecMins
+        return listTimers[curPos++].timeMins
     }
 
     fun clearList(){
         listTimers.clear()
     }
+
+    // export списка для сохранения
+    fun getListAsStringSet(): MutableSet<String> {
+        val mList : MutableSet<String> = mutableSetOf()
+        var itemNum = 0
+        for (item in listTimers) {
+            mList.add("${itemNum++};${item.temperature};${item.timeMins}")
+        }
+        return mList
+    }
+
+    fun loadFromStringSet(mySet: MutableSet<String>) {
+        if (mySet.count()==0) return
+        for (str in mySet.sorted()){ // до 10
+            val stringArray: List<String> = str.split(";")
+            add(TimerHolder(stringArray[1].toByte(), stringArray[1].toInt()))
+        }
+    }
+
 
 
     fun startWork(): Boolean{

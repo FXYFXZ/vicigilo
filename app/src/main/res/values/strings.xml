@@ -1,8 +1,12 @@
 <resources>
     <string name="app_name">Vicigilo</string>
 
-    <string name="menu_launch">Запустить вылененное</string>
-    <string name="menu_delete">Удалить</string>
+    <string name="сm_launch">Запустить</string>
+    <string name="cm_delete">Удалить</string>
+
+    <string name="menu_save_list">Сохранить список</string>
+    <string name="menu_delete_list">Удалить список</string>
+    <string name="menu_clear_list">Очистить</string>
 
     <string name="btn_hint_temp">25-100º</string>
     <string name="btn_hint_time">1-200мин</string>

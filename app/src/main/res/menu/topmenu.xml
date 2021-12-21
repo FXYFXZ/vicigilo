@@ -1,10 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/menuLaunch"
-        android:title="@string/menu_launch" />
+        android:id="@+id/menuSaveList"
+        android:icon="@drawable/ic_menu_save_list"
+        android:title="@string/menu_save_list"
+        app:showAsAction="withText" />
+
     <item
-        android:id="@+id/menuDelete"
-        android:title="@string/menu_delete" />
+        android:id="@+id/menuDeleteList"
+        android:icon="@drawable/ic_menu_delete_list"
+        android:title="@string/menu_delete_list" />
+
+    <item
+        android:id="@+id/clearTimers"
+        android:icon="@drawable/ic_menu_clear_timers"
+        android:title="@string/menu_clear_list" />
+
 </menu>
