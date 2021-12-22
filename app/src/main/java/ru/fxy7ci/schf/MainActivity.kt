@@ -1,5 +1,6 @@
 package ru.fxy7ci.schf
 
+import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.Notification
 import android.app.PendingIntent
@@ -18,6 +19,8 @@ import android.util.Log
 import android.view.*
 import android.widget.AdapterView.AdapterContextMenuInfo
 import ru.fxy7ci.schf.databinding.ActivityMainBinding
+import android.widget.ArrayAdapter
+import android.widget.Spinner
 
 
 class MainActivity : AppCompatActivity() {  // ========================================== MAIN =====
@@ -41,6 +44,7 @@ class MainActivity : AppCompatActivity() {  // =================================
         sp = getSharedPreferences(SETT_NAME, Context.MODE_PRIVATE)
         timerAdapter = TimeGridAdapter(this, scheduler.getList())
         binding.lvTimers.adapter = timerAdapter
+        fillSpinner()
         updateMenu()
         eventsMake()
         loadData()
@@ -88,18 +92,6 @@ class MainActivity : AppCompatActivity() {  // =================================
         binding.btnAddRecipe.setOnClickListener{
             saveRecipe()
         }
-
-        // Recipe change
-//        binding.spRecipes.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
-//            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-//                binding.tvSelected.text = "Selected ${position} ${id}"
-//                makeTimers(position)
-//                updateMenu()
-//            }
-//            override fun onNothingSelected(parent: AdapterView<*>?) {
-//            }
-//        }
-
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -173,23 +165,19 @@ class MainActivity : AppCompatActivity() {  // =================================
         binding.lyNewRecipe.visibility = View.GONE
     }
 
+    @SuppressLint("UnspecifiedImmutableFlag")
     private fun startAlarm(myMinutes: Int){
         val mAlarmManager: AlarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(this, MyScheduledReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(
-            this, 0,
-            intent, PendingIntent.FLAG_ONE_SHOT
-        )
+            this, 0, intent, PendingIntent.FLAG_ONE_SHOT)
         val calendar = Calendar.getInstance()
         calendar.timeInMillis = System.currentTimeMillis()
         // calendar.add(Calendar.SECOND, myMinutes)
         calendar.add(Calendar.MINUTE, myMinutes)
-
         mAlarmManager.set(
             AlarmManager.RTC_WAKEUP,  calendar.timeInMillis, pendingIntent)
-
     }
-
 
     private fun saveRecipe(){
         if (binding.edRecipeName.length()== 0) return
@@ -198,11 +186,6 @@ class MainActivity : AppCompatActivity() {  // =================================
         e.putStringSet(binding.edRecipeName.text.toString(),lst)
         e.apply()
         binding.lyNewRecipe.visibility = View.GONE
-
-        sp.all.forEach{
-            Log.d("MyLog", it.key)
-        }
-
     }
 
 
@@ -220,6 +203,41 @@ class MainActivity : AppCompatActivity() {  // =================================
         }
     }
 
+    private fun fillSpinner(){
+        val mList : MutableSet<String> = mutableSetOf()
+        sp.all.forEach{
+            if (it.key != SETT_MAIN_LIST) {
+                mList.add(it.key)
+            }
+        }
+
+        val data = mList.toTypedArray()
+//        data.add("USD")
+//        data.add("RUB")
+//        val convert_from_spinner: Spinner = root.findViewById(R.id.<your spinner_id>)
+
+        val adpt = ArrayAdapter(this, android.R.layout.simple_list_item_1, data)
+        binding.spRecipes.adapter = adpt
+
+/*
+        if (recFound) {
+            // Recipe change
+//        binding.spRecipes.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
+//            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+//                binding.tvSelected.text = "Selected ${position} ${id}"
+//                makeTimers(position)
+//                updateMenu()
+//            }
+//            override fun onNothingSelected(parent: AdapterView<*>?) {
+//            }
+//        }
+
+        }
+*/
+
+
+
+    }
 
     private fun notificateMe(){
         // Создаём уведомление
