@@ -9,21 +9,20 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import ru.fxy7ci.schf.databinding.ActivityMainBinding
 import java.util.*
 import android.content.BroadcastReceiver
 import android.content.IntentFilter
 import android.widget.Toast
 import android.content.SharedPreferences
-import android.util.Log
 import android.view.*
 import android.widget.AdapterView.AdapterContextMenuInfo
+import ru.fxy7ci.schf.databinding.ActivityMainBinding
 
 
 class MainActivity : AppCompatActivity() {  // ========================================== MAIN =====
     private lateinit var binding: ActivityMainBinding
     lateinit var timerAdapter : TimeGridAdapter
-    lateinit var sp: SharedPreferences
+    private lateinit var sp: SharedPreferences
 
     companion object {
         const val SETT_NAME = "mySettings"
@@ -38,7 +37,7 @@ class MainActivity : AppCompatActivity() {  // =================================
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        sp = getSharedPreferences(SETT_NAME, Context.MODE_PRIVATE);
+        sp = getSharedPreferences(SETT_NAME, Context.MODE_PRIVATE)
         timerAdapter = TimeGridAdapter(this, scheduler.getList())
         binding.lvTimers.adapter = timerAdapter
         updateMenu()
@@ -81,7 +80,7 @@ class MainActivity : AppCompatActivity() {  // =================================
         binding.btnStart.setOnClickListener {
             goStart()
         }
-        binding.btnStop.setOnClickListener(){
+        binding.btnStop.setOnClickListener {
             stopCook()
         }
 
@@ -139,7 +138,7 @@ class MainActivity : AppCompatActivity() {  // =================================
     }
 
     private fun launchTime(myItemID : Int) {
-        Toast.makeText(this, "Launch: ${myItemID}", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Launch: $myItemID", Toast.LENGTH_SHORT).show()
     }
 
     private fun deleteTime(myItemID : Int) {
@@ -148,7 +147,7 @@ class MainActivity : AppCompatActivity() {  // =================================
        saveData()
     }
 
-    var broadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+    private var broadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             // Alarmilo ekis...
             val nextMins = scheduler.getTimeToEndEtap()
@@ -183,7 +182,6 @@ class MainActivity : AppCompatActivity() {  // =================================
     // сохраняем всё состояние
     private fun saveData(){
         val lst  = scheduler.getListAsStringSet()
-        if (lst.count() ==0) return
         val e = sp.edit()
         e.putStringSet(SETT_MAIN_LIST,lst)
         e.apply()

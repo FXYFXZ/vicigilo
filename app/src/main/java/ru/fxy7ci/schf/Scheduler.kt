@@ -63,7 +63,6 @@ class Scheduler() {
         var cPos = 0
         try {
             for (str in mySet.sorted()){ // до 10
-                Log.d("MyLog", str)
                 val sArray: List<String> = str.split(";")
                 listTimers.add(TimerHolder(sArray[1].toByte(), sArray[2].toInt()))
                 if(sArray[3] == "1") curPos = cPos
