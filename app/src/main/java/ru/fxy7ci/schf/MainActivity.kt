@@ -190,7 +190,9 @@ class MainActivity : AppCompatActivity() {  // =================================
     }
 
     private fun loadData(){
-        sp.getStringSet(SETT_MAIN_LIST, null)?.let {scheduler.loadFromStringSet(it)}
+        sp.getStringSet(SETT_MAIN_LIST, null)?.let {
+            scheduler.loadFromStringSet(it)
+        }
     }
 
 
@@ -199,7 +201,7 @@ class MainActivity : AppCompatActivity() {  // =================================
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_action_cat)
             .setContentTitle("Напоминание")
-            .setContentText("Пора покормить кота")
+            .setContentText("Пора переключить")
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 

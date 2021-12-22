@@ -1,5 +1,9 @@
 package ru.fxy7ci.schf
 
+import android.util.Log
+import java.io.IOException
+import java.lang.Exception
+
 
 val scheduler = Scheduler()
 
@@ -39,6 +43,7 @@ class Scheduler() {
 
     fun clearList(){
         listTimers.clear()
+        stopWork()
     }
 
     // export списка для сохранения
@@ -46,22 +51,26 @@ class Scheduler() {
         val mList : MutableSet<String> = mutableSetOf()
         var itemNum = 0
         for (item in listTimers) {
-            val wm = if(itemNum == curPos) "1" else "0"
-            mList.add("${itemNum++};${item.temperature};${item.timeMins}")
+            val wm = if(itemNum == curPos) "1" else "0" // aktiva
+            mList.add("${itemNum++};${item.temperature};${item.timeMins};${wm}")
         }
         return mList
     }
 
     fun loadFromStringSet(mySet: MutableSet<String>) {
         clearList()
-        stopWork()
         if (mySet.count()==0) return
         var cPos = 0
-        for (str in mySet.sorted()){ // до 10
-            val sArray: List<String> = str.split(";")
-            listTimers.add(TimerHolder(sArray[1].toByte(), sArray[1].toInt()))
-            if(sArray[2] == "1") curPos = cPos
-            cPos++
+        try {
+            for (str in mySet.sorted()){ // до 10
+                Log.d("MyLog", str)
+                val sArray: List<String> = str.split(";")
+                listTimers.add(TimerHolder(sArray[1].toByte(), sArray[2].toInt()))
+                if(sArray[3] == "1") curPos = cPos
+                cPos++
+            }
+        } catch (i: Exception){
+            clearList()
         }
     }
 
