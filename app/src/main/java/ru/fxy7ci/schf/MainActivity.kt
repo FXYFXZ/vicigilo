@@ -14,6 +14,7 @@ import android.content.BroadcastReceiver
 import android.content.IntentFilter
 import android.widget.Toast
 import android.content.SharedPreferences
+import android.util.Log
 import android.view.*
 import android.widget.AdapterView.AdapterContextMenuInfo
 import ru.fxy7ci.schf.databinding.ActivityMainBinding
@@ -50,11 +51,11 @@ class MainActivity : AppCompatActivity() {  // =================================
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         val inflater: MenuInflater = menuInflater
         inflater.inflate(R.menu.topmenu,menu)
+        //todo запреты во время работы
         return super.onCreateOptionsMenu(menu)
     }
 
-
-    // Events ---------------------------------------
+    // Events ----------------------------------------------------------------------------- EVENTS
     private fun eventsMake(){
         binding.btnAdd.setOnClickListener{
             if (binding.edTemperature.text.isNotEmpty() &&
@@ -84,7 +85,9 @@ class MainActivity : AppCompatActivity() {  // =================================
         binding.btnStop.setOnClickListener {
             stopCook()
         }
-
+        binding.btnAddRecipe.setOnClickListener{
+            saveRecipe()
+        }
 
         // Recipe change
 //        binding.spRecipes.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
@@ -101,7 +104,11 @@ class MainActivity : AppCompatActivity() {  // =================================
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.menuSaveList -> saveData()
+            R.id.menuSaveList -> {
+                binding.lyNewRecipe.visibility = View.VISIBLE
+                binding.edRecipeName.text.clear()
+                binding.edRecipeName.requestFocus()
+            }
             R.id.clearTimers -> {
                 scheduler.clearList()
                 timerAdapter.notifyDataSetChanged()
@@ -163,6 +170,7 @@ class MainActivity : AppCompatActivity() {  // =================================
     override fun onStart() {
         super.onStart()
         updateMenu()
+        binding.lyNewRecipe.visibility = View.GONE
     }
 
     private fun startAlarm(myMinutes: Int){
@@ -181,6 +189,22 @@ class MainActivity : AppCompatActivity() {  // =================================
             AlarmManager.RTC_WAKEUP,  calendar.timeInMillis, pendingIntent)
 
     }
+
+
+    private fun saveRecipe(){
+        if (binding.edRecipeName.length()== 0) return
+        val lst  = scheduler.getListAsStringSet()
+        val e = sp.edit()
+        e.putStringSet(binding.edRecipeName.text.toString(),lst)
+        e.apply()
+        binding.lyNewRecipe.visibility = View.GONE
+
+        sp.all.forEach{
+            Log.d("MyLog", it.key)
+        }
+
+    }
+
 
     // сохраняем всё состояние
     private fun saveData(){

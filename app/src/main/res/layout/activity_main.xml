@@ -29,6 +29,30 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
 
+        <LinearLayout
+            android:id="@+id/lyNewRecipe"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <EditText
+                android:id="@+id/edRecipeName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="50"
+                android:hint="@string/menu_recipe_hint" />
+
+            <Button
+                android:id="@+id/btnAddRecipe"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_weight="20"
+                android:text="@string/menu_btn_save_list"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
         <ListView
             android:id="@+id/lvTimers"
             android:layout_width="match_parent"
@@ -71,7 +95,6 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="3"
                 android:text="@string/btn_add"
-                android:textColor="@color/black"
                 android:textStyle="bold" />
         </LinearLayout>
 
