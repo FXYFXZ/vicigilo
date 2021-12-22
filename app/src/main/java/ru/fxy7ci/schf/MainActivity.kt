@@ -66,6 +66,7 @@ class MainActivity : AppCompatActivity() {  // =================================
                 if (temperature in  25..100  && timeDecs in 1..255    ) {
                     scheduler.add(TimerHolder(temperature.toByte(),timeDecs))
                     timerAdapter.notifyDataSetChanged()
+                    saveData()
                     updateMenu()
                 }
                 binding.edTemperature.text.clear()
@@ -104,7 +105,8 @@ class MainActivity : AppCompatActivity() {  // =================================
             R.id.clearTimers -> {
                 scheduler.clearList()
                 timerAdapter.notifyDataSetChanged()
-                //todo сохраняем
+                saveData()
+                updateMenu()
             }
         }
         return super.onOptionsItemSelected(item)
@@ -145,6 +147,7 @@ class MainActivity : AppCompatActivity() {  // =================================
        scheduler.delete(myItemID)
        timerAdapter.notifyDataSetChanged()
        saveData()
+       updateMenu()
     }
 
     private var broadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
@@ -212,6 +215,9 @@ class MainActivity : AppCompatActivity() {  // =================================
 
     private fun updateMenu(){
 
+        binding.tvStatus.visibility = if (scheduler.isOn()) View.VISIBLE else View.GONE
+        binding.spRecipes.visibility = if (!scheduler.isOn()) View.VISIBLE else View.GONE
+
         if (timerAdapter.count == 0){
             binding.btnStart.visibility = View.GONE
             binding.btnStop.visibility = View.GONE
@@ -242,6 +248,7 @@ class MainActivity : AppCompatActivity() {  // =================================
         startAlarm(scheduler.getTimeToEndEtap())
         timerAdapter.notifyDataSetChanged()
         updateMenu()
+        saveData()
     }
 
     // Остановка всех процессов
@@ -249,6 +256,7 @@ class MainActivity : AppCompatActivity() {  // =================================
         scheduler.stopWork()
         timerAdapter.notifyDataSetChanged()
         updateMenu()
+        saveData()
     }
 
 }
