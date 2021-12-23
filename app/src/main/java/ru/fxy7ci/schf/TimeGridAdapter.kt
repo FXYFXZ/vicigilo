@@ -42,12 +42,18 @@ class TimeGridAdapter (var context: Context, var timerList: List<TimerHolder>) :
         timeSet.text = minText
 
         val progress = newView.findViewById<View>(R.id.progressBar) as ProgressBar
+        val progrTime = newView.findViewById<View>(R.id.pbTimeLast) as ProgressBar
+
         if (scheduler.isOn() &&  scheduler.getCurPos()-1 == position) {
             progress.visibility = View.VISIBLE
-//            progress.progress = (timerList[position].downCounter*100)/(timerList[position].timeDecMins*10)
+//            progrTime.visibility = View.VISIBLE
+//todo рассчитываем время на прогрессбаре
+//            progrTime.progress = (timerList[position].downCounter*100)/(timerList[position].timeDecMins*10)
         }
-        else
+        else {
             progress.visibility = View.GONE
+            progrTime.visibility = View.GONE
+        }
         return newView
 
     }

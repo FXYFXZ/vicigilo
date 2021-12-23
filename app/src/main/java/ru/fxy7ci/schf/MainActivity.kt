@@ -15,19 +15,18 @@ import android.content.BroadcastReceiver
 import android.content.IntentFilter
 import android.widget.Toast
 import android.content.SharedPreferences
-import android.util.Log
 import android.view.*
+import android.widget.AdapterView
 import android.widget.AdapterView.AdapterContextMenuInfo
 import ru.fxy7ci.schf.databinding.ActivityMainBinding
 import android.widget.ArrayAdapter
-import android.widget.Spinner
 
 
 class MainActivity : AppCompatActivity() {  // ========================================== MAIN =====
     private lateinit var binding: ActivityMainBinding
     lateinit var timerAdapter : TimeGridAdapter
     private lateinit var sp: SharedPreferences
-
+    private var supressRecChange = false
     companion object {
         const val SETT_NAME = "mySettings"
         const val SETT_MAIN_LIST = "mainlist"
@@ -45,11 +44,11 @@ class MainActivity : AppCompatActivity() {  // =================================
         timerAdapter = TimeGridAdapter(this, scheduler.getList())
         binding.lvTimers.adapter = timerAdapter
         fillSpinner()
-        updateMenu()
         eventsMake()
         loadData()
         registerReceiver(broadcastReceiver,  IntentFilter("INTERNET_LOST")) //TODO rename
         registerForContextMenu(binding.lvTimers)
+        updateMenu()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -86,11 +85,35 @@ class MainActivity : AppCompatActivity() {  // =================================
         binding.btnStart.setOnClickListener {
             goStart()
         }
+
         binding.btnStop.setOnClickListener {
             stopCook()
         }
+
         binding.btnAddRecipe.setOnClickListener{
             saveRecipe()
+        }
+
+        binding.btnShowAdd.setOnClickListener{
+            binding.lyAdd.visibility = View.VISIBLE
+            binding.btnShowAdd.visibility = View.GONE
+        }
+
+        // Recipe change
+        binding.spRecipes.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (supressRecChange) {
+                    supressRecChange = false
+                }
+                else {
+                    loadData(binding.spRecipes.adapter.getItem(position).toString())
+                    timerAdapter.notifyDataSetChanged()
+                    saveData()
+                    updateMenu()
+                }
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+            }
         }
     }
 
@@ -106,6 +129,16 @@ class MainActivity : AppCompatActivity() {  // =================================
                 timerAdapter.notifyDataSetChanged()
                 saveData()
                 updateMenu()
+            }
+            R.id.menuDeleteList -> {
+                val adpt = binding.spRecipes.adapter
+                if (adpt.count != 0) {
+                    val txt = binding.spRecipes.selectedItem.toString()
+                    val e = sp.edit()
+                    e.remove(txt)
+                    e.apply()
+                    fillSpinner()
+                }
             }
         }
         return super.onOptionsItemSelected(item)
@@ -203,6 +236,12 @@ class MainActivity : AppCompatActivity() {  // =================================
         }
     }
 
+    private fun loadData(myName: String){
+        sp.getStringSet(myName, null)?.let {
+            scheduler.loadFromStringSet(it)
+        }
+    }
+
     private fun fillSpinner(){
         val mList : MutableSet<String> = mutableSetOf()
         sp.all.forEach{
@@ -210,33 +249,10 @@ class MainActivity : AppCompatActivity() {  // =================================
                 mList.add(it.key)
             }
         }
-
         val data = mList.toTypedArray()
-//        data.add("USD")
-//        data.add("RUB")
-//        val convert_from_spinner: Spinner = root.findViewById(R.id.<your spinner_id>)
-
         val adpt = ArrayAdapter(this, android.R.layout.simple_list_item_1, data)
         binding.spRecipes.adapter = adpt
-
-/*
-        if (recFound) {
-            // Recipe change
-//        binding.spRecipes.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
-//            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-//                binding.tvSelected.text = "Selected ${position} ${id}"
-//                makeTimers(position)
-//                updateMenu()
-//            }
-//            override fun onNothingSelected(parent: AdapterView<*>?) {
-//            }
-//        }
-
-        }
-*/
-
-
-
+        supressRecChange = true
     }
 
     private fun notificateMe(){
@@ -263,7 +279,11 @@ class MainActivity : AppCompatActivity() {  // =================================
         if (timerAdapter.count == 0){
             binding.btnStart.visibility = View.GONE
             binding.btnStop.visibility = View.GONE
+            binding.lyAdd.visibility = View.VISIBLE
             return
+        }
+        else{
+            binding.lyAdd.visibility = View.GONE
         }
 
         if (scheduler.isOn()){
@@ -274,7 +294,9 @@ class MainActivity : AppCompatActivity() {  // =================================
         else {
             binding.btnStart.visibility =  View.VISIBLE
             binding.btnStop.visibility = View.GONE
-            binding.lyAdd.visibility = View.VISIBLE
+            if (binding.lyAdd.visibility != View.VISIBLE)
+                binding.btnShowAdd.visibility = View.VISIBLE
+
         }
     }
 

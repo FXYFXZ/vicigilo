@@ -34,7 +34,7 @@
             android:layout_width="match_parent"
             android:layout_height="100dp"
             android:orientation="horizontal"
-            android:visibility="gone">
+            android:visibility="visible">
 
             <EditText
                 android:id="@+id/edRecipeName"
@@ -60,6 +60,13 @@
             android:listSelector="@color/clr_sel" >
 
         </ListView>
+
+        <Button
+            android:id="@+id/btnShowAdd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="+" />
+
 
         <LinearLayout
             android:id="@+id/lyAdd"
@@ -97,7 +104,6 @@
                 android:text="@string/btn_add"
                 android:textStyle="bold" />
         </LinearLayout>
-
 
         <LinearLayout
             android:id="@+id/startstop"
