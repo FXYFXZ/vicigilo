@@ -2,19 +2,17 @@ package ru.fxy7ci.schf
 
 import android.annotation.SuppressLint
 import android.app.AlarmManager
-import android.app.Notification
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import java.util.*
 import android.content.BroadcastReceiver
 import android.content.IntentFilter
 import android.widget.Toast
 import android.content.SharedPreferences
+import android.util.Log
 import android.view.*
 import android.widget.AdapterView
 import android.widget.AdapterView.AdapterContextMenuInfo
@@ -27,17 +25,25 @@ class MainActivity : AppCompatActivity() {  // =================================
     lateinit var timerAdapter : TimeGridAdapter
     private lateinit var sp: SharedPreferences
     private var supressRecChange = false
+    // Alarmo
+    private lateinit var mAlarmManager : AlarmManager
+    private lateinit var mIntent: Intent
+    private lateinit var mPendingIntent: PendingIntent
+
     companion object {
         const val SETT_NAME = "mySettings"
         const val SETT_MAIN_LIST = "mainlist"
-
-        const val NOTIFICATION_ID = 101
-        const val CHANNEL_ID = "channelID"
     }
 
     // база
     override fun onCreate(savedInstanceState: Bundle?) { // =============================== CREATE
         super.onCreate(savedInstanceState)
+
+        mAlarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        mIntent = Intent(this, MyScheduledReceiver::class.java)
+        mPendingIntent = PendingIntent.getBroadcast(
+            this, 0, mIntent, PendingIntent.FLAG_ONE_SHOT)
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         sp = getSharedPreferences(SETT_NAME, Context.MODE_PRIVATE)
@@ -56,6 +62,12 @@ class MainActivity : AppCompatActivity() {  // =================================
         inflater.inflate(R.menu.topmenu,menu)
         //todo запреты во время работы
         return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onStart() {  // START
+        super.onStart()
+        updateMenu()
+        binding.lyNewRecipe.visibility = View.GONE
     }
 
     // Events ----------------------------------------------------------------------------- EVENTS
@@ -171,6 +183,29 @@ class MainActivity : AppCompatActivity() {  // =================================
         return super.onContextItemSelected(item)
     }
 
+    private fun goStart() {
+        if (scheduler.isOn()) return
+        if (!scheduler.startWork()) return
+        setnewAlarm()
+    }
+
+    private fun setnewAlarm() {
+        Log.d("MyLog", "alarm")
+        startAlarm(scheduler.getTimeToEndEtap())
+        timerAdapter.notifyDataSetChanged()
+        updateMenu()
+        saveData()
+    }
+
+    // Остановка всех процессов
+    private fun stopCook(){
+        scheduler.stopWork()
+        timerAdapter.notifyDataSetChanged()
+        updateMenu()
+        saveData()
+        mAlarmManager.cancel(mPendingIntent)
+    }
+
     private fun launchTime(myItemID : Int) {
         Toast.makeText(this, "Launch: $myItemID", Toast.LENGTH_SHORT).show()
     }
@@ -184,32 +219,19 @@ class MainActivity : AppCompatActivity() {  // =================================
 
     private var broadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            // Alarmilo ekis...
-            val nextMins = scheduler.getTimeToEndEtap()
-            if (nextMins !=0) startAlarm(nextMins)
-            timerAdapter.notifyDataSetChanged()
-            updateMenu()
+            setnewAlarm()
         }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        updateMenu()
-        binding.lyNewRecipe.visibility = View.GONE
     }
 
     @SuppressLint("UnspecifiedImmutableFlag")
     private fun startAlarm(myMinutes: Int){
-        val mAlarmManager: AlarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(this, MyScheduledReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(
-            this, 0, intent, PendingIntent.FLAG_ONE_SHOT)
+
         val calendar = Calendar.getInstance()
         calendar.timeInMillis = System.currentTimeMillis()
         // calendar.add(Calendar.SECOND, myMinutes)
         calendar.add(Calendar.MINUTE, myMinutes)
         mAlarmManager.set(
-            AlarmManager.RTC_WAKEUP,  calendar.timeInMillis, pendingIntent)
+            AlarmManager.RTC_WAKEUP,  calendar.timeInMillis, mPendingIntent)
     }
 
     private fun saveRecipe(){
@@ -255,21 +277,6 @@ class MainActivity : AppCompatActivity() {  // =================================
         supressRecChange = true
     }
 
-    private fun notificateMe(){
-        // Создаём уведомление
-        val builder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_action_cat)
-            .setContentTitle("Напоминание")
-            .setContentText("Пора переключить")
-            .setAutoCancel(true)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-
-        builder.setDefaults(Notification.DEFAULT_SOUND)
-
-        with(NotificationManagerCompat.from(this)) {
-            notify(NOTIFICATION_ID, builder.build()) // посылаем уведомление
-        }
-    }
 
     private fun updateMenu(){
 
@@ -306,23 +313,6 @@ class MainActivity : AppCompatActivity() {  // =================================
         super.onDestroy()
     }
 
-    private fun goStart() {
-        if (scheduler.isOn()) return
-        if (!scheduler.startWork()) return
-        startAlarm(scheduler.getTimeToEndEtap())
-        timerAdapter.notifyDataSetChanged()
-        updateMenu()
-        saveData()
-    }
-
-    // Остановка всех процессов
-    private fun stopCook(){
-        scheduler.stopWork()
-        timerAdapter.notifyDataSetChanged()
-        updateMenu()
-        saveData()
-    }
-
-}
+} // CLASS
 
 
