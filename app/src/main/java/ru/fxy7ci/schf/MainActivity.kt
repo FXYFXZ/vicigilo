@@ -33,16 +33,17 @@ class MainActivity : AppCompatActivity() {  // =================================
     companion object {
         const val SETT_NAME = "mySettings"
         const val SETT_MAIN_LIST = "mainlist"
+        const val NOTIFICATION_REQUEST_CODE = 77
     }
 
     // база
     override fun onCreate(savedInstanceState: Bundle?) { // =============================== CREATE
         super.onCreate(savedInstanceState)
+        Log.d("MyLog", "create")
 
         mAlarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         mIntent = Intent(this, MyScheduledReceiver::class.java)
-        mPendingIntent = PendingIntent.getBroadcast(
-            this, 0, mIntent, PendingIntent.FLAG_ONE_SHOT)
+
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -190,8 +191,8 @@ class MainActivity : AppCompatActivity() {  // =================================
     }
 
     private fun setnewAlarm() {
-        Log.d("MyLog", "alarm")
-        startAlarm(scheduler.getTimeToEndEtap())
+        val newTime = scheduler.getTimeToEndEtap()
+        if (newTime !=0) startAlarm(newTime)
         timerAdapter.notifyDataSetChanged()
         updateMenu()
         saveData()
@@ -207,6 +208,7 @@ class MainActivity : AppCompatActivity() {  // =================================
     }
 
     private fun launchTime(myItemID : Int) {
+        //todo запускаем процесс
         Toast.makeText(this, "Launch: $myItemID", Toast.LENGTH_SHORT).show()
     }
 
@@ -223,15 +225,25 @@ class MainActivity : AppCompatActivity() {  // =================================
         }
     }
 
-    @SuppressLint("UnspecifiedImmutableFlag")
     private fun startAlarm(myMinutes: Int){
-
         val calendar = Calendar.getInstance()
+        val reqCode = calendar.get(Calendar.MINUTE) * 100 + calendar.get(Calendar.SECOND)
+
+        mPendingIntent = PendingIntent.getBroadcast(
+            this, reqCode, mIntent, PendingIntent.FLAG_IMMUTABLE
+                    or PendingIntent.FLAG_ONE_SHOT)
+
+
         calendar.timeInMillis = System.currentTimeMillis()
         // calendar.add(Calendar.SECOND, myMinutes)
-        calendar.add(Calendar.MINUTE, myMinutes)
+        //calendar.add(Calendar.MINUTE, myMinutes)
+        calendar.add(Calendar.SECOND, myMinutes)
+
         mAlarmManager.set(
             AlarmManager.RTC_WAKEUP,  calendar.timeInMillis, mPendingIntent)
+
+        Log.d("MyLog", "set alarm")
+
     }
 
     private fun saveRecipe(){
@@ -297,13 +309,16 @@ class MainActivity : AppCompatActivity() {  // =================================
             binding.btnStart.visibility = View.GONE
             binding.btnStop.visibility = View.VISIBLE
             binding.lyAdd.visibility = View.GONE
+            binding.btnShowAdd.visibility = View.GONE
         }
         else {
             binding.btnStart.visibility =  View.VISIBLE
             binding.btnStop.visibility = View.GONE
+
             if (binding.lyAdd.visibility != View.VISIBLE)
                 binding.btnShowAdd.visibility = View.VISIBLE
-
+            else
+                binding.btnShowAdd.visibility = View.GONE
         }
     }
 

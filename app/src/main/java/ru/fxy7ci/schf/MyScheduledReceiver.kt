@@ -11,13 +11,20 @@ import android.graphics.BitmapFactory
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Vibrator
+import android.util.Log
 
 
-class MyScheduledReceiver() : BroadcastReceiver() {
+class MyScheduledReceiver: BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
+        Log.d("MyLog", "broadcast")
+
+
+        //todo правильно будить приложение
+
         // дергаем через интент
         context.sendBroadcast(Intent("INTERNET_LOST"))
+
 
         val scheduledIntent = Intent(context, MainActivity::class.java)
         scheduledIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
