@@ -1,6 +1,5 @@
 package ru.fxy7ci.schf
 
-import android.annotation.SuppressLint
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
@@ -33,7 +32,6 @@ class MainActivity : AppCompatActivity() {  // =================================
     companion object {
         const val SETT_NAME = "mySettings"
         const val SETT_MAIN_LIST = "mainlist"
-        const val NOTIFICATION_REQUEST_CODE = 77
     }
 
     // база
