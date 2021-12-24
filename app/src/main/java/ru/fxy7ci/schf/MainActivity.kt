@@ -233,10 +233,8 @@ class MainActivity : AppCompatActivity() {  // =================================
 
 
         calendar.timeInMillis = System.currentTimeMillis()
-        // calendar.add(Calendar.SECOND, myMinutes)
-        //calendar.add(Calendar.MINUTE, myMinutes)
-        calendar.add(Calendar.SECOND, myMinutes)
-
+        calendar.add(Calendar.MINUTE, myMinutes)
+//        calendar.add(Calendar.SECOND, myMinutes)
         mAlarmManager.set(
             AlarmManager.RTC_WAKEUP,  calendar.timeInMillis, mPendingIntent)
 
