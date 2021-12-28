@@ -14,7 +14,7 @@ import android.os.Vibrator
 import android.util.Log
 
 
-class MyScheduledReceiver: BroadcastReceiver() {
+class MyBroadcastReceiver: BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         Log.d("MyLog", "broadcast")
@@ -61,8 +61,6 @@ class MyScheduledReceiver: BroadcastReceiver() {
 
         val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         vibrator.vibrate(200)
-
-
     }
 }
 

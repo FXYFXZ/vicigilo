@@ -40,7 +40,7 @@ class MainActivity : AppCompatActivity() {  // =================================
         Log.d("MyLog", "create")
 
         mAlarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        mIntent = Intent(this, MyScheduledReceiver::class.java)
+        mIntent = Intent(this, MyBroadcastReceiver::class.java)
 
 
         binding = ActivityMainBinding.inflate(layoutInflater)

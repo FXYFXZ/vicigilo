@@ -14,7 +14,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Gui1">
         <receiver
-            android:name="ru.fxy7ci.schf.MyScheduledReceiver"
+            android:name="ru.fxy7ci.schf.MyBroadcastReceiver"
             android:enabled="true"
             android:exported="true"></receiver>
 

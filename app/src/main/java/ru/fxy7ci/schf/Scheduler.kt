@@ -23,6 +23,7 @@ class Scheduler() {
     fun add (myVal: TimerHolder) {
         if (isOn()) return
         if (listTimers.count() >= 10) return //todo если будет больше, переделать функцию сохранения
+        // (сортировка предусмотрена только до 0-9)
         listTimers.add(myVal)
         stopWork()
     }
@@ -82,7 +83,6 @@ class Scheduler() {
     fun stopWork(){
         curPos = -1
     }
-
 
     fun getList()= listTimers
     fun isOn() = curPos != -1
