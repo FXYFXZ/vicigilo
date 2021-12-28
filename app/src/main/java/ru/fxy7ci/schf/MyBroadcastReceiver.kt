@@ -23,7 +23,7 @@ class MyBroadcastReceiver: BroadcastReceiver() {
         //todo правильно будить приложение
 
         // дергаем через интент
-        context.sendBroadcast(Intent("INTERNET_LOST"))
+        context.sendBroadcast(Intent(StoreVals.MAIN_BRD_ALARM))
 
 
         val scheduledIntent = Intent(context, MainActivity::class.java)

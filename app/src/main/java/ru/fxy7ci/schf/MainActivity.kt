@@ -1,22 +1,23 @@
 package ru.fxy7ci.schf
 
+import android.app.Activity
 import android.app.AlarmManager
 import android.app.PendingIntent
-import android.content.Context
-import android.content.Intent
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothManager
+import android.content.*
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import java.util.*
-import android.content.BroadcastReceiver
-import android.content.IntentFilter
 import android.widget.Toast
-import android.content.SharedPreferences
+import android.os.IBinder
 import android.util.Log
 import android.view.*
 import android.widget.AdapterView
 import android.widget.AdapterView.AdapterContextMenuInfo
 import ru.fxy7ci.schf.databinding.ActivityMainBinding
 import android.widget.ArrayAdapter
+import androidx.activity.result.contract.ActivityResultContracts
 
 
 class MainActivity : AppCompatActivity() {  // ========================================== MAIN =====
@@ -29,6 +30,8 @@ class MainActivity : AppCompatActivity() {  // =================================
     private lateinit var mIntent: Intent
     private lateinit var mPendingIntent: PendingIntent
 
+    private lateinit var srvBLE: ServBLE
+
     companion object {
         const val SETT_NAME = "mySettings"
         const val SETT_MAIN_LIST = "mainlist"
@@ -37,23 +40,29 @@ class MainActivity : AppCompatActivity() {  // =================================
     // база
     override fun onCreate(savedInstanceState: Bundle?) { // =============================== CREATE
         super.onCreate(savedInstanceState)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         Log.d("MyLog", "create")
+
+        getPermissions()
 
         mAlarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         mIntent = Intent(this, MyBroadcastReceiver::class.java)
 
-
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
         sp = getSharedPreferences(SETT_NAME, Context.MODE_PRIVATE)
         timerAdapter = TimeGridAdapter(this, scheduler.getList())
         binding.lvTimers.adapter = timerAdapter
         fillSpinner()
         eventsMake()
         loadData()
-        registerReceiver(broadcastReceiver,  IntentFilter("INTERNET_LOST")) //TODO rename
+        registerReceiver(broadcastReceiver,  IntentFilter(StoreVals.MAIN_BRD_ALARM))
         registerForContextMenu(binding.lvTimers)
         updateMenu()
+        // Service
+        val gattServiceIntent = Intent(this, ServBLE::class.java)
+        bindService(gattServiceIntent, mBLEConnection, BIND_AUTO_CREATE)
+
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -206,7 +215,7 @@ class MainActivity : AppCompatActivity() {  // =================================
     }
 
     private fun launchTime(myItemID : Int) {
-        //todo запускаем процесс
+        srvBLE.getJob(TimerHolder(20,10)) // запускаем процесс
         Toast.makeText(this, "Launch: $myItemID", Toast.LENGTH_SHORT).show()
     }
 
@@ -318,9 +327,56 @@ class MainActivity : AppCompatActivity() {  // =================================
         }
     }
 
+    // Получение разрешений
+    private fun getPermissions() {
+//        myAppState = AppState.AP_BT_PROBLEM
+//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+//            != PackageManager.PERMISSION_GRANTED) {
+//            ActivityCompat.requestPermissions(
+//                this,
+//                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+//                StoreVals.BT_REQUEST_PERMISSION )
+//        }
+        // Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
+        // fire an intent to display a dialog asking the user to grant permission to enable it.
+        // Initializes a Bluetooth adapter.  For API level 18 and above, get a reference to
+        // BluetoothAdapter through BluetoothManager.
+        val bluetoothManager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager
+        val mBluetoothAdapter: BluetoothAdapter = bluetoothManager.adapter
+
+        val getResult = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()) {
+            if(it.resultCode == Activity.RESULT_OK){
+//                val value = it.data?.getStringExtra("input")
+                Toast.makeText(this, "BLU ON!!!", Toast.LENGTH_SHORT).show()
+                //TODO перегрузка соединений
+                //invalidateOptionsMenu()
+            }
+        }
+        if (!mBluetoothAdapter.isEnabled) {
+            val enableBtIntent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+            getResult.launch(enableBtIntent)
+        }
+        // все нормально...
+
+
+    }
+
+    // ================================================================================ BLE Service
+    private val mBLEConnection: ServiceConnection = object : ServiceConnection {
+        override fun onServiceConnected(componentName: ComponentName, service: IBinder) {
+            srvBLE = ServBLE().mBinder.getService()
+            Log.d("MyLog", "main On bind")
+        }
+
+        override fun onServiceDisconnected(componentName: ComponentName) {
+        }
+    }
+
     override fun onDestroy() {
         // убираем все процессы, освобождаем ресурсы
         stopCook()
+        unbindService(mBLEConnection)
         super.onDestroy()
     }
 
