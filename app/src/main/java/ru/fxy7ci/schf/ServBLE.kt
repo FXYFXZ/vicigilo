@@ -27,7 +27,7 @@ class ServBLE : Service() {
     }
 
     override fun onBind(intent: Intent): IBinder {
-        Log.d("MyLog", "on bind")
+//        Log.d("MyLog", "on bind")
         return mBinder
 
 //        return mBinder
@@ -44,16 +44,22 @@ class ServBLE : Service() {
         if (connect()) {
             runTask()
         }
+        //todo анализ флагов выполнения
+        theJob.timeMins = 0
     }
 
     // ===================================================================================MAIN JOB
     private fun runTask(){
         Thread {
-            SystemClock.sleep(5000)
+            // ждём подключения к характеристикам
+            for (tmW in 1..200){
+                SystemClock.sleep(50)
+                if (charReady) break
+            }
+
             if (charReady) {
 
-
-                Log.d("MyLog", "передача")
+                Log.d("MyLog", "передача " + theJob.temperature)
                 SystemClock.sleep(1000)
 
 
@@ -64,12 +70,9 @@ class ServBLE : Service() {
 
             }
 
-            theJob.timeMins = 0
-            Log.d("MyLog", "EK")
-
+            Log.d("MyLog", "Stop Thread")
         }.start()
     }
-
 
     private fun connect(): Boolean {
         val device: BluetoothDevice? = mBluetoothAdapter.getRemoteDevice(StoreVals.DeviceAddress)
@@ -77,7 +80,6 @@ class ServBLE : Service() {
             Log.d("MyLog", "Can't connect")
             return false
         }
-        Log.d("MyLog", device.toString())
         mBluetoothGatt = device.connectGatt(this, false, mGattCallback)
         return true
     }

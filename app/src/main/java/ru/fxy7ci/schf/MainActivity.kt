@@ -221,8 +221,7 @@ class MainActivity : AppCompatActivity() {  // =================================
     }
 
     private fun launchTime(myItemID : Int) {
-        srvBLE.getJob(TimerHolder(20,10)) // запускаем процесс
-        Toast.makeText(this, "Launch: $myItemID", Toast.LENGTH_SHORT).show()
+        srvBLE.getJob(timerAdapter.getItem(myItemID) as TimerHolder) // запускаем процесс
     }
 
     private fun deleteTime(myItemID : Int) {
@@ -372,8 +371,7 @@ class MainActivity : AppCompatActivity() {  // =================================
     private val mBLEConnection: ServiceConnection = object : ServiceConnection {
         override fun onServiceConnected(componentName: ComponentName, service: IBinder) {
             srvBLE = ServBLE().mBinder.getService()
-            Log.d("MyLog", "main On bind")
-
+//            Log.d("MyLog", "main On bind")
             val bluetoothAdapter: BluetoothAdapter by lazy {
                 val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
                 bluetoothManager.adapter
