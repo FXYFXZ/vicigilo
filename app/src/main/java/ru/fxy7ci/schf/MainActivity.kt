@@ -137,12 +137,7 @@ class MainActivity : AppCompatActivity() {  // =================================
         }
 
         binding.btnTest.setOnClickListener{
-
-            val bluetoothAdapter: BluetoothAdapter by lazy {
-                val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-                bluetoothManager.adapter
-            }
-            srvBLE.initAdapter(bluetoothAdapter)
+            srvBLE.disconnect()
         }
 
 
@@ -378,10 +373,12 @@ class MainActivity : AppCompatActivity() {  // =================================
         override fun onServiceConnected(componentName: ComponentName, service: IBinder) {
             srvBLE = ServBLE().mBinder.getService()
             Log.d("MyLog", "main On bind")
-//            if (!srvBLE.initAdapters()){
-//                Log.d("MyLog", "Blutooth adaptor problem")
-//                finish()
-//            }
+
+            val bluetoothAdapter: BluetoothAdapter by lazy {
+                val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+                bluetoothManager.adapter
+            }
+            srvBLE.mBluetoothAdapter = bluetoothAdapter
         }
 
         override fun onServiceDisconnected(componentName: ComponentName) {
