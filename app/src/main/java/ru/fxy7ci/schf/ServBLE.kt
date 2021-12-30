@@ -11,14 +11,20 @@ import android.util.Log
 import java.util.*
 
 
-class ServBLE : Service() {
-    private var theJob = TimerHolder(20,0)
-    var mBinder = MyBinder()
+class TheJob (
+    var temperature: Byte = 20,  // заданная температура
+    var timeMins: Int = 0)
 
+
+
+class ServBLE : Service() {
+    var mBinder = MyBinder()
+    private var theJob = TheJob()
     lateinit var mBluetoothAdapter: BluetoothAdapter
     lateinit var mBluetoothGatt: BluetoothGatt
     private var charReady = false
     lateinit var btChar: BluetoothGattCharacteristic
+
 
     inner class MyBinder : Binder() {
         fun getService() : ServBLE {
@@ -40,7 +46,8 @@ class ServBLE : Service() {
 
     fun getJob(myJob:TimerHolder) {
         if (theJob.timeMins != 0) return // system's busy
-        theJob = myJob
+        theJob.timeMins = myJob.timeMins
+        theJob.temperature = myJob.temperature
         if (connect()) {
             runTask()
         }
@@ -52,6 +59,7 @@ class ServBLE : Service() {
     private fun runTask(){
         Thread {
             // ждём подключения к характеристикам
+            charReady = false
             for (tmW in 1..200){
                 SystemClock.sleep(50)
                 if (charReady) break
@@ -60,14 +68,11 @@ class ServBLE : Service() {
             if (charReady) {
 
                 Log.d("MyLog", "передача " + theJob.temperature)
-                SystemClock.sleep(1000)
-
+                sendChar()
+                SystemClock.sleep(3000)
 
                 Log.d("MyLog", "рассоединение")
                 disconnect()
-
-                SystemClock.sleep(1000)
-
             }
 
             Log.d("MyLog", "Stop Thread")
@@ -86,7 +91,7 @@ class ServBLE : Service() {
 
     fun disconnect() {
         mBluetoothGatt.disconnect()
-        mBluetoothGatt.close()
+        //mBluetoothGatt.close()
     }
     // Implements callback methods for GATT events that the app cares about.
     // For example, connection change and services discovered.
@@ -138,5 +143,56 @@ class ServBLE : Service() {
         }
         return false // искали, ничего нашли
     }
+
+
+    // времянка - потом меняем на RMC
+    private fun sendChar() {
+        val value = ByteArray(6)
+        value[0] = 3
+        value[4] = 0xAB.toByte()
+        value[5] = 0xBA.toByte()
+
+        when(theJob.temperature) {
+            25.toByte() -> {
+                value[1] = 128.toByte()
+                value[2] = 255.toByte()
+                value[3] = 128.toByte()
+            }
+
+            26.toByte() -> {
+                value[1] = 255.toByte()
+                value[2] = 255.toByte()
+                value[3] = 255.toByte()
+            }
+
+            27.toByte() -> {
+                value[1] = 128.toByte()
+                value[2] = 128.toByte()
+                value[3] = 255.toByte()
+            }
+
+            28.toByte() -> {
+                value[1] = 128.toByte()
+                value[2] = 255.toByte()
+                value[3] = 255.toByte()
+            }
+
+            else -> {
+                value[1] = 0.toByte()
+                value[2] = 0.toByte()
+                value[3] = 0.toByte()
+            }
+        }
+
+        btChar.value = value
+        mBluetoothGatt.writeCharacteristic(btChar)
+    }
+
+
+
+
+
+
+
 
 }

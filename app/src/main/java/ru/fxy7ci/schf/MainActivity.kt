@@ -135,12 +135,6 @@ class MainActivity : AppCompatActivity() {  // =================================
             override fun onNothingSelected(parent: AdapterView<*>?) {
             }
         }
-
-        binding.btnTest.setOnClickListener{
-            srvBLE.disconnect()
-        }
-
-
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -205,6 +199,7 @@ class MainActivity : AppCompatActivity() {  // =================================
 
     private fun setnewAlarm() {
         val newTime = scheduler.getTimeToEndEtap()
+        srvBLE.getJob(timerAdapter.getItem(scheduler.getCurPos()) as TimerHolder)
         if (newTime !=0) startAlarm(newTime)
         timerAdapter.notifyDataSetChanged()
         updateMenu()
