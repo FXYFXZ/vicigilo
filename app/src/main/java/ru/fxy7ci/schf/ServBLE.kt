@@ -3,6 +3,9 @@ package ru.fxy7ci.schf
 // Служба связи по BLE
 
 import android.app.Service
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothManager
+import android.content.Context
 import android.content.Intent
 import android.os.*
 import android.util.Log
@@ -12,6 +15,10 @@ import java.util.*
 class ServBLE : Service() {
     private var theJob = TimerHolder(20,0)
     var mBinder = MyBinder()
+
+
+//    lateinit var mBluetoothManager: BluetoothManager
+    lateinit var mBluetoothAdapter: BluetoothAdapter
 
     inner class MyBinder : Binder() {
         fun getService() : ServBLE {
@@ -36,6 +43,11 @@ class ServBLE : Service() {
         theJob = myJob
         runTask()
         Log.d("MyLog", "got job")
+    }
+
+
+    fun initAdapter(myAdapter: BluetoothAdapter){
+        mBluetoothAdapter = myAdapter
     }
 
     // ===================================================================================MAIN JOB

@@ -135,6 +135,17 @@ class MainActivity : AppCompatActivity() {  // =================================
             override fun onNothingSelected(parent: AdapterView<*>?) {
             }
         }
+
+        binding.btnTest.setOnClickListener{
+
+            val bluetoothAdapter: BluetoothAdapter by lazy {
+                val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+                bluetoothManager.adapter
+            }
+            srvBLE.initAdapter(bluetoothAdapter)
+        }
+
+
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -367,6 +378,10 @@ class MainActivity : AppCompatActivity() {  // =================================
         override fun onServiceConnected(componentName: ComponentName, service: IBinder) {
             srvBLE = ServBLE().mBinder.getService()
             Log.d("MyLog", "main On bind")
+//            if (!srvBLE.initAdapters()){
+//                Log.d("MyLog", "Blutooth adaptor problem")
+//                finish()
+//            }
         }
 
         override fun onServiceDisconnected(componentName: ComponentName) {

@@ -128,6 +128,16 @@
                 android:textColor="@color/design_default_color_error"
                 android:textSize="24sp"
                 android:visibility="gone" />
+
+            <Button
+                android:id="@+id/btnTest"
+                android:layout_width="wrap_content"
+                android:layout_height="92dp"
+                android:layout_gravity="center"
+                android:text="TEST"
+                android:textSize="24sp" />
+
+
         </LinearLayout>
 
     </LinearLayout>
