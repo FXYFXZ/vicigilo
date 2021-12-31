@@ -3,7 +3,9 @@ package ru.fxy7ci.schf
 class StoreVals {
 
     companion object {
-        const val DeviceAddress = "88:25:83:F1:1D:07" //MAC
+//        const val DeviceAddress = "88:25:83:F1:1D:07" //MAC @work
+        const val DeviceAddress = "18:93:D7:51:75:65" //MAC BLE_FST
+
         const val APP_PREFERENCES = "myAppSettings"
 
         const val MAIN_BRD_ALARM = "BroadCastOnAlarm"

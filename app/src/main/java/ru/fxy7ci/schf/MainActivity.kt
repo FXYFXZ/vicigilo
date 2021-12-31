@@ -198,9 +198,18 @@ class MainActivity : AppCompatActivity() {  // =================================
     }
 
     private fun setnewAlarm() {
-        val newTime = scheduler.getTimeToEndEtap()
-        srvBLE.getJob(timerAdapter.getItem(scheduler.getCurPos()) as TimerHolder)
-        if (newTime !=0) startAlarm(newTime)
+        if (scheduler.isOn()) {
+            // есть время...
+            val curPos = scheduler.getCurPos()
+            val curTM = timerAdapter.getItem(curPos) as TimerHolder
+            srvBLE.getJob(curTM)
+            startAlarm(curTM.timeMins)
+            scheduler.advance()
+        }
+        else {
+            // laboro finigxis, выключаем...
+            srvBLE.getJob(TimerHolder(0,1))
+        }
         timerAdapter.notifyDataSetChanged()
         updateMenu()
         saveData()
@@ -242,13 +251,10 @@ class MainActivity : AppCompatActivity() {  // =================================
 
 
         calendar.timeInMillis = System.currentTimeMillis()
-        calendar.add(Calendar.MINUTE, myMinutes)
-//        calendar.add(Calendar.SECOND, myMinutes)
+//        calendar.add(Calendar.MINUTE, myMinutes)
+        calendar.add(Calendar.SECOND, myMinutes)
         mAlarmManager.set(
             AlarmManager.RTC_WAKEUP,  calendar.timeInMillis, mPendingIntent)
-
-        Log.d("MyLog", "set alarm")
-
     }
 
     private fun saveRecipe(){

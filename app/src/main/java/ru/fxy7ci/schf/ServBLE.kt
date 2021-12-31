@@ -40,11 +40,13 @@ class ServBLE : Service() {
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
-        Log.d("MyLog", "on UN bind")
+        Log.d("MyLog", "on UNbind")
         return super.onUnbind(intent)
     }
 
     fun getJob(myJob:TimerHolder) {
+        Log.d("MyLog", "got Job" + myJob.temperature)
+
         if (theJob.timeMins != 0) return // system's busy
         theJob.timeMins = myJob.timeMins
         theJob.temperature = myJob.temperature
@@ -53,6 +55,8 @@ class ServBLE : Service() {
         }
         //todo анализ флагов выполнения
         theJob.timeMins = 0
+
+
     }
 
     // ===================================================================================MAIN JOB
@@ -69,7 +73,7 @@ class ServBLE : Service() {
 
                 Log.d("MyLog", "передача " + theJob.temperature)
                 sendChar()
-                SystemClock.sleep(3000)
+                SystemClock.sleep(2000)
 
                 Log.d("MyLog", "рассоединение")
                 disconnect()

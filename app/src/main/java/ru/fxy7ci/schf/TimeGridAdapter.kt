@@ -8,6 +8,12 @@ import android.widget.BaseAdapter
 import android.widget.ProgressBar
 import android.widget.TextView
 
+//
+class TimerHolder (
+    var temperature: Byte = 20, // temperature set if 0 -> turn device off
+    var timeMins: Int = 10) {   // time for etap
+}
+
 // Адаптор для добавления, рисования и работы с таймерами
 class TimeGridAdapter (var context: Context, var timerList: List<TimerHolder>) : BaseAdapter() {
     var inFlater: LayoutInflater = LayoutInflater.from(context)
