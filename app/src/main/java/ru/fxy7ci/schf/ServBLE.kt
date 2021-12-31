@@ -1,21 +1,17 @@
 package ru.fxy7ci.schf
 
-// Служба связи по BLE
+// BLE service ============================================================================
 
 import android.app.Service
 import android.bluetooth.*
-import android.content.Context
 import android.content.Intent
 import android.os.*
 import android.util.Log
 import java.util.*
 
-
 class TheJob (
     var temperature: Byte = 20,  // заданная температура
     var timeMins: Int = 0)
-
-
 
 class ServBLE : Service() {
     var mBinder = MyBinder()
@@ -23,8 +19,9 @@ class ServBLE : Service() {
     lateinit var mBluetoothAdapter: BluetoothAdapter
     lateinit var mBluetoothGatt: BluetoothGatt
     private var charReady = false
-    lateinit var btChar: BluetoothGattCharacteristic
-
+    //lateinit var btChar: BluetoothGattCharacteristic
+    private var btCharHC: BluetoothGattCharacteristic? = null
+    private var btCharHE: BluetoothGattCharacteristic? = null
 
     inner class MyBinder : Binder() {
         fun getService() : ServBLE {
@@ -46,7 +43,6 @@ class ServBLE : Service() {
 
     fun getJob(myJob:TimerHolder) {
         Log.d("MyLog", "got Job" + myJob.temperature)
-
         if (theJob.timeMins != 0) return // system's busy
         theJob.timeMins = myJob.timeMins
         theJob.temperature = myJob.temperature
@@ -55,14 +51,24 @@ class ServBLE : Service() {
         }
         //todo анализ флагов выполнения
         theJob.timeMins = 0
-
-
     }
 
     // ===================================================================================MAIN JOB
     private fun runTask(){
+        // colontituls
+        val STA: Byte = 0x55    // start byte
+        val STP = 0xAA.toByte() // stop
+        // commands
+        val PING: Byte = 0x01
+        val MD_MULTI: Byte = 0x02 // set multicook
+        val GO: Byte = 0x03       // start cooking
+        val FINISH: Byte = 0x04   // finish
+        val COOK: Byte = 0x05     // set mode
+        val STATUS: Byte = 0x06   // get status
+        var seqv: Byte = 2
+
         Thread {
-            // ждём подключения к характеристикам
+            // wait until characteristics found
             charReady = false
             for (tmW in 1..200){
                 SystemClock.sleep(50)
@@ -70,12 +76,66 @@ class ServBLE : Service() {
             }
 
             if (charReady) {
+                Log.d("MyLog", "char found")
+                val descriptor =
+                    btCharHC!!.getDescriptor(UUID.fromString(StoreVals.CCC_DESCRIPTOR_UUID))
+                descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+                if (mBluetoothGatt.writeDescriptor(descriptor)) Log.d("MyLog", "set descriptor")
+                SystemClock.sleep(200)
+                val SET_PASS = byteArrayOf(
+                    STA, seqv++, 0xFF.toByte(), 0x79, 0xA2.toByte(), 0x9C.toByte(),
+                    0x39, 0x38, 0xA2.toByte(), 0x44, 0xD5.toByte(), STP
+                )
+                btCharHE!!.value = SET_PASS
+                if (mBluetoothGatt.writeCharacteristic(btCharHE)) Log.d("MyLog", "sent pass")
+                SystemClock.sleep(200)
+                // ping ---
+                btCharHE!!.value = byteArrayOf(0x55, seqv++, PING, 0xAA.toByte())  // ping
+                mBluetoothGatt.writeCharacteristic(btCharHE)
+                SystemClock.sleep(500)
+                // set up cook mode ----
+                val COMMAND = byteArrayOf(
+                    STA,
+                    seqv++,  // head
+                    COOK,
+                    MD_MULTI,  //
+                    (theJob.temperature / 100).toByte(),
+                    theJob.temperature.mod(100).toByte(),  // temperature
+                    (theJob.timeMins / 60).toByte(),
+                    theJob.timeMins.mod(60).toByte(),  // time BCD
+                    0,
+                    0,
+                    1,  // malsciita
+                    STP
+                )
 
-                Log.d("MyLog", "передача " + theJob.temperature)
-                sendChar()
-                SystemClock.sleep(2000)
+                if (theJob.temperature > 25) {
+                    // simple run
+                    btCharHE!!.value = COMMAND
+                    mBluetoothGatt.writeCharacteristic(btCharHE)
+                    SystemClock.sleep(1000)
 
-                Log.d("MyLog", "рассоединение")
+                    btCharHE!!.value = byteArrayOf(STA, seqv++, GO, STP) // GO
+                    mBluetoothGatt.writeCharacteristic(btCharHE)
+                }
+                else {
+                    // stop
+                    btCharHE!!.value = byteArrayOf(STA, seqv++, FINISH, STP) // Stop
+                    mBluetoothGatt.writeCharacteristic(btCharHE)
+                }
+
+                // todo проверяем по статусу
+                /*
+                val QUERY = byteArrayOf(0x55, 0x01, STATUS, 0xAA.toByte())
+                for (I in 0..10) {
+                    QUERY[1] = seqv++
+                    btCharHE!!.value = QUERY
+                    mBluetoothGatt!!.writeCharacteristic(btCharHE)
+                    SystemClock.sleep(1000)
+                }
+                */
+
+                Log.d("MyLog", "disconnect")
                 disconnect()
             }
 
@@ -93,7 +153,7 @@ class ServBLE : Service() {
         return true
     }
 
-    fun disconnect() {
+    private fun disconnect() {
         mBluetoothGatt.disconnect()
         //mBluetoothGatt.close()
     }
@@ -118,7 +178,7 @@ class ServBLE : Service() {
             status: Int
         ) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
-
+                Log.d("MyLog", Arrays.toString(characteristic.value))
             }
         }
 
@@ -126,7 +186,7 @@ class ServBLE : Service() {
             gatt: BluetoothGatt,
             characteristic: BluetoothGattCharacteristic
         ) {
-
+            Log.d("MyLog", Arrays.toString(characteristic.value))
         }
     }
 
@@ -139,60 +199,19 @@ class ServBLE : Service() {
             val gattCharacteristics = gattService.characteristics
             for (gattCharacteristic in gattCharacteristics) {
 //                Log.d("MyLog", "Char:" + gattCharacteristic.getUuid().toString());
-                if (gattCharacteristic.uuid.toString() == StoreVals.BT_MAIN_CHR) {
-                    btChar = gattCharacteristic
-                    return true
+                if (gattCharacteristic.uuid.toString() == StoreVals.BT_HC) {
+                    btCharHC = gattCharacteristic
+                    mBluetoothGatt.setCharacteristicNotification(btCharHC, true)
+                }
+                if (gattCharacteristic.uuid.toString() == StoreVals.BT_HE) {
+                    btCharHE = gattCharacteristic
+                    mBluetoothGatt.setCharacteristicNotification(btCharHE, true)
                 }
             }
         }
-        return false // искали, ничего нашли
+
+        return (btCharHC != null) && (btCharHE != null)
     }
-
-
-    // времянка - потом меняем на RMC
-    private fun sendChar() {
-        val value = ByteArray(6)
-        value[0] = 3
-        value[4] = 0xAB.toByte()
-        value[5] = 0xBA.toByte()
-
-        when(theJob.temperature) {
-            25.toByte() -> {
-                value[1] = 128.toByte()
-                value[2] = 255.toByte()
-                value[3] = 128.toByte()
-            }
-
-            26.toByte() -> {
-                value[1] = 255.toByte()
-                value[2] = 255.toByte()
-                value[3] = 255.toByte()
-            }
-
-            27.toByte() -> {
-                value[1] = 128.toByte()
-                value[2] = 128.toByte()
-                value[3] = 255.toByte()
-            }
-
-            28.toByte() -> {
-                value[1] = 128.toByte()
-                value[2] = 255.toByte()
-                value[3] = 255.toByte()
-            }
-
-            else -> {
-                value[1] = 0.toByte()
-                value[2] = 0.toByte()
-                value[3] = 0.toByte()
-            }
-        }
-
-        btChar.value = value
-        mBluetoothGatt.writeCharacteristic(btChar)
-    }
-
-
 
 
 
