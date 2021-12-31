@@ -49,8 +49,6 @@ class ServBLE : Service() {
         if (connect()) {
             runTask()
         }
-        //todo анализ флагов выполнения
-        theJob.timeMins = 0
     }
 
     // ===================================================================================MAIN JOB
@@ -89,28 +87,34 @@ class ServBLE : Service() {
                 btCharHE!!.value = SET_PASS
                 if (mBluetoothGatt.writeCharacteristic(btCharHE)) Log.d("MyLog", "sent pass")
                 SystemClock.sleep(200)
+
                 // ping ---
                 btCharHE!!.value = byteArrayOf(0x55, seqv++, PING, 0xAA.toByte())  // ping
                 mBluetoothGatt.writeCharacteristic(btCharHE)
                 SystemClock.sleep(500)
-                // set up cook mode ----
-                val COMMAND = byteArrayOf(
-                    STA,
-                    seqv++,  // head
-                    COOK,
-                    MD_MULTI,  //
-                    (theJob.temperature / 100).toByte(),
-                    theJob.temperature.mod(100).toByte(),  // temperature
-                    (theJob.timeMins / 60).toByte(),
-                    theJob.timeMins.mod(60).toByte(),  // time BCD
-                    0,
-                    0,
-                    1,  // malsciita
-                    STP
-                )
+                Log.d("MyLog", theJob.timeMins.toString() )
+                //.mod(60).toByte()
+                if (theJob.temperature >= 35) {
+                    // set up cook mode ----
+                    val COMMAND = byteArrayOf(
+                        STA,
+                        seqv++,  // head
+                        COOK,
+                        MD_MULTI,  //
 
-                if (theJob.temperature > 25) {
+                        (theJob.temperature / 100).toByte(),
+                        theJob.temperature.mod(100).toByte(),  // temperature
+
+                        (theJob.timeMins / 60).toByte(),
+                        theJob.timeMins.mod(60).toByte(),  // time BCD
+
+                        0,
+                        0,
+                        1,  // malsciita
+                        STP
+                    )
                     // simple run
+                    Log.d("MyLog", Arrays.toString(COMMAND) )
                     btCharHE!!.value = COMMAND
                     mBluetoothGatt.writeCharacteristic(btCharHE)
                     SystemClock.sleep(1000)
@@ -134,6 +138,7 @@ class ServBLE : Service() {
                     SystemClock.sleep(1000)
                 }
                 */
+                theJob.timeMins = 0
 
                 Log.d("MyLog", "disconnect")
                 disconnect()
@@ -186,7 +191,7 @@ class ServBLE : Service() {
             gatt: BluetoothGatt,
             characteristic: BluetoothGattCharacteristic
         ) {
-            Log.d("MyLog", Arrays.toString(characteristic.value))
+           //todo Log.d("MyLog", Arrays.toString(characteristic.value))
         }
     }
 

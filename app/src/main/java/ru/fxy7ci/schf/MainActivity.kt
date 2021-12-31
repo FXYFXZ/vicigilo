@@ -87,7 +87,7 @@ class MainActivity : AppCompatActivity() {  // =================================
                 val temperature = binding.edTemperature.text.toString().toInt()
                 val timeDecs = binding.edTime.text.toString().toInt()
 
-                if (temperature in  25..100  && timeDecs in 1..255    ) {
+                if (temperature in  35..100  && timeDecs in 1..255    ) {
                     scheduler.add(TimerHolder(temperature.toByte(),timeDecs))
                     timerAdapter.notifyDataSetChanged()
                     saveData()
@@ -198,6 +198,9 @@ class MainActivity : AppCompatActivity() {  // =================================
     }
 
     private fun setnewAlarm() {
+        timerAdapter.notifyDataSetChanged()
+        updateMenu()
+        saveData()
         if (scheduler.isOn()) {
             // есть время...
             val curPos = scheduler.getCurPos()
@@ -208,11 +211,8 @@ class MainActivity : AppCompatActivity() {  // =================================
         }
         else {
             // laboro finigxis, выключаем...
-            srvBLE.getJob(TimerHolder(0,1))
+            //+++srvBLE.getJob(TimerHolder(0,1))
         }
-        timerAdapter.notifyDataSetChanged()
-        updateMenu()
-        saveData()
     }
 
     // Остановка всех процессов
