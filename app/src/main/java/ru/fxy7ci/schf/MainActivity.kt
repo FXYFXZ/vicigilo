@@ -87,7 +87,7 @@ class MainActivity : AppCompatActivity() {  // =================================
                 val temperature = binding.edTemperature.text.toString().toInt()
                 val timeDecs = binding.edTime.text.toString().toInt()
 
-                if (temperature in  35..100  && timeDecs in 1..255    ) {
+                if (temperature in  30..100  && timeDecs in 1..255    ) {
                     scheduler.add(TimerHolder(temperature.toByte(),timeDecs))
                     timerAdapter.notifyDataSetChanged()
                     saveData()
@@ -211,7 +211,7 @@ class MainActivity : AppCompatActivity() {  // =================================
         }
         else {
             // laboro finigxis, выключаем...
-            //+++srvBLE.getJob(TimerHolder(0,1))
+            srvBLE.getJob(TimerHolder(0,1))
         }
     }
 
@@ -251,8 +251,8 @@ class MainActivity : AppCompatActivity() {  // =================================
 
 
         calendar.timeInMillis = System.currentTimeMillis()
-//        calendar.add(Calendar.MINUTE, myMinutes)
-        calendar.add(Calendar.SECOND, myMinutes)
+        calendar.add(Calendar.MINUTE, myMinutes)
+        calendar.add(Calendar.SECOND, -10) // no jitter
         mAlarmManager.set(
             AlarmManager.RTC_WAKEUP,  calendar.timeInMillis, mPendingIntent)
     }

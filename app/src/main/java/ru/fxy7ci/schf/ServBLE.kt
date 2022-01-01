@@ -42,10 +42,10 @@ class ServBLE : Service() {
     }
 
     fun getJob(myJob:TimerHolder) {
-        Log.d("MyLog", "got Job" + myJob.temperature)
         if (theJob.timeMins != 0) return // system's busy
         theJob.timeMins = myJob.timeMins
         theJob.temperature = myJob.temperature
+        Log.d("MyLog", "got Job" + myJob.temperature)
         if (connect()) {
             runTask()
         }
@@ -138,13 +138,14 @@ class ServBLE : Service() {
                     SystemClock.sleep(1000)
                 }
                 */
-                theJob.timeMins = 0
+
 
                 Log.d("MyLog", "disconnect")
                 disconnect()
             }
 
             Log.d("MyLog", "Stop Thread")
+            theJob.timeMins = 0
         }.start()
     }
 
