@@ -82,8 +82,9 @@ class ServBLE : Service() {
                 SystemClock.sleep(200)
                 val SET_PASS = byteArrayOf(
                     STA, seqv++, 0xFF.toByte(), 0x79, 0xA2.toByte(), 0x9C.toByte(),
-                    0x39, 0x38, 0xA2.toByte(), 0x44, 0xD5.toByte(), STP
+                    0x38, 0x38, 0xA2.toByte(), 0x44, 0xD5.toByte(), STP
                 )
+
                 btCharHE!!.value = SET_PASS
                 if (mBluetoothGatt.writeCharacteristic(btCharHE)) Log.d("MyLog", "sent pass")
                 SystemClock.sleep(200)

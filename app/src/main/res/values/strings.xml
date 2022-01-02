@@ -4,11 +4,11 @@
     <string name="сm_launch">Запустить</string>
     <string name="cm_delete">Удалить</string>
 
-    <string name="menu_save_list">Сохранить список</string>
-    <string name="menu_delete_list">Удалить список</string>
-    <string name="menu_clear_list">Очистить</string>
+    <string name="menu_save_list">Сохранить рецепт</string>
+    <string name="menu_delete_list">Удалить рецепт</string>
+    <string name="menu_clear_list">Очистить список</string>
 
-    <string name="menu_recipe_hint">Название списка</string>
+    <string name="menu_recipe_hint">Новый рецепт</string>
     <string name="menu_btn_save_list">Сохранить</string>
 
     <string name="btn_hint_temp">25-100º</string>

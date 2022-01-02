@@ -68,8 +68,14 @@ class MainActivity : AppCompatActivity() {  // =================================
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         val inflater: MenuInflater = menuInflater
         inflater.inflate(R.menu.topmenu,menu)
-        //todo запреты во время работы
         return super.onCreateOptionsMenu(menu)
+    }
+
+
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        val item = menu!!.findItem(R.id.clearTimers)
+        item.isVisible = !scheduler.isOn()
+        return super.onPrepareOptionsMenu(menu)
     }
 
     override fun onStart() {  // START
@@ -112,11 +118,6 @@ class MainActivity : AppCompatActivity() {  // =================================
 
         binding.btnAddRecipe.setOnClickListener{
             saveRecipe()
-        }
-
-        binding.btnShowAdd.setOnClickListener{
-            binding.lyAdd.visibility = View.VISIBLE
-            binding.btnShowAdd.visibility = View.GONE
         }
 
         // Recipe change
@@ -210,7 +211,8 @@ class MainActivity : AppCompatActivity() {  // =================================
             scheduler.advance()
         }
         else {
-            // laboro finigxis, выключаем...
+            //todo информируем о завершении
+            // может принудительно  выключаем...
             srvBLE.getJob(TimerHolder(0,1))
         }
     }
@@ -300,37 +302,37 @@ class MainActivity : AppCompatActivity() {  // =================================
         supressRecChange = true
     }
 
+    private fun getStatusText(): String {
+        //todo текст статуса
+        return "ETA...."
+    }
+
 
     private fun updateMenu(){
+        binding.spRecipes.visibility = if (scheduler.isOn()) View.GONE else View.VISIBLE
 
-        binding.tvStatus.visibility = if (scheduler.isOn()) View.VISIBLE else View.GONE
-        binding.spRecipes.visibility = if (!scheduler.isOn()) View.VISIBLE else View.GONE
-
-        if (timerAdapter.count == 0){
-            binding.btnStart.visibility = View.GONE
-            binding.btnStop.visibility = View.GONE
-            binding.lyAdd.visibility = View.VISIBLE
-            return
-        }
-        else{
+        if (scheduler.isOn()) {  // ON
             binding.lyAdd.visibility = View.GONE
-        }
 
-        if (scheduler.isOn()){
+            binding.tvStatus.visibility = View.VISIBLE
+            binding.tvStatus.text = getStatusText()
+
+            binding.lyAdd.visibility = View.GONE
+
             binding.btnStart.visibility = View.GONE
             binding.btnStop.visibility = View.VISIBLE
-            binding.lyAdd.visibility = View.GONE
-            binding.btnShowAdd.visibility = View.GONE
         }
-        else {
-            binding.btnStart.visibility =  View.VISIBLE
+        else { // OFF
+            binding.tvStatus.visibility = View.GONE
+
+            binding.lyAdd.visibility = if(timerAdapter.count < StoreVals.CODE_MAX_TIMERS)
+                View.VISIBLE else View.GONE
+
+            binding.btnStart.visibility = if(timerAdapter.count != 0)  View.VISIBLE else View.GONE
             binding.btnStop.visibility = View.GONE
 
-            if (binding.lyAdd.visibility != View.VISIBLE)
-                binding.btnShowAdd.visibility = View.VISIBLE
-            else
-                binding.btnShowAdd.visibility = View.GONE
         }
+        invalidateOptionsMenu()
     }
 
     // Получение разрешений
@@ -385,12 +387,11 @@ class MainActivity : AppCompatActivity() {  // =================================
     }
 
     override fun onDestroy() {
-        // убираем все процессы, освобождаем ресурсы
         stopCook()
         unbindService(mBLEConnection)
         super.onDestroy()
     }
 
-} // CLASS
+} // CLASS ________________________________________________________________________________CLASS END
 
 

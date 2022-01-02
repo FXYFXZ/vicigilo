@@ -12,6 +12,10 @@ class StoreVals {
         const val MAIN_BRD_ALARM = "BroadCastOnAlarm"
         const val MAIN_BRD_BLE = "BroadCastOnBLE"
 
+        const val CODE_MAX_TIMERS = 9
+
+
+
 
         // BLE
         const val BT_REQUEST_PERMISSION : Int = 89
