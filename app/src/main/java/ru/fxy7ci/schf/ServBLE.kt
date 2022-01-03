@@ -81,9 +81,9 @@ class ServBLE : Service() {
                 val descriptor =
                     btCharHC!!.getDescriptor(UUID.fromString(StoreVals.CCC_DESCRIPTOR_UUID))
                 descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+                callBackFlag = false
                 mBluetoothGatt.writeDescriptor(descriptor)
                 if (waitCallBackFlag()) {
-                    Log.d("MyLog", "descriptor")
                     val SET_PASS = byteArrayOf(
                         STA, seqv++, 0xFF.toByte(), 0x79, 0xA2.toByte(), 0x9C.toByte(),
                         0x39, 0x38, 0xA2.toByte(), 0x44, 0xD5.toByte(), STP
@@ -139,20 +139,19 @@ class ServBLE : Service() {
                     }
                 }
                 disconnect()
-//                waitCallBackFlag()
             }
-            else {
+
+            if (!cmdSuccess){
                 jobCatch.isMissed = true
+                Log.d("MyLog", "Stop Thread Error")
+                //todo отправляем интент
             }
-
-            Log.d("MyLog", "Stop Thread")
-            //todo отправляем интент
-
-
-            theJob.timeMins = 0
+            else{
+                Log.d("MyLog", "Stop Thread OK")
+            }
+            theJob.timeMins = 0 // free
         }.start()
     }
-
 
     private fun waitCallBackFlag() : Boolean{
         for (tmW in 1..200){
