@@ -19,6 +19,7 @@ class ServBLE : Service() {
     lateinit var mBluetoothAdapter: BluetoothAdapter
     lateinit var mBluetoothGatt: BluetoothGatt
     private var charReady = false
+    private var callBackFlag = false
     private var btCharHC: BluetoothGattCharacteristic? = null
     private var btCharHE: BluetoothGattCharacteristic? = null
     lateinit var jobCatch: TimerHolder
@@ -66,6 +67,7 @@ class ServBLE : Service() {
         val STATUS: Byte = 0x06   // get status
         var seqv: Byte = 2
 
+        var cmdSuccess = false
         Thread {
             // wait until characteristics found
             charReady = false
@@ -73,87 +75,96 @@ class ServBLE : Service() {
                 SystemClock.sleep(50)
                 if (charReady) break
             }
-
             if (charReady) {
                 Log.d("MyLog", "char found")
+
                 val descriptor =
                     btCharHC!!.getDescriptor(UUID.fromString(StoreVals.CCC_DESCRIPTOR_UUID))
                 descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-                if (mBluetoothGatt.writeDescriptor(descriptor)) Log.d("MyLog", "set descriptor")
-                SystemClock.sleep(200)
-                val SET_PASS = byteArrayOf(
-                    STA, seqv++, 0xFF.toByte(), 0x79, 0xA2.toByte(), 0x9C.toByte(),
-                    0x39, 0x38, 0xA2.toByte(), 0x44, 0xD5.toByte(), STP
-//                    0x30, 0x38, 0xA2.toByte(), 0x44, 0xD5.toByte(), STP
-                )
-
-                btCharHE!!.value = SET_PASS
-                if (mBluetoothGatt.writeCharacteristic(btCharHE)) Log.d("MyLog", "sent pass")
-                SystemClock.sleep(200)
-
-                // ping ---
-                btCharHE!!.value = byteArrayOf(0x55, seqv++, PING, 0xAA.toByte())  // ping
-                mBluetoothGatt.writeCharacteristic(btCharHE)
-                SystemClock.sleep(500)
-                Log.d("MyLog", theJob.timeMins.toString() )
-                //.mod(60).toByte()
-                if (theJob.temperature >= 35) {
-                    // set up cook mode ----
-                    val COMMAND = byteArrayOf(
-                        STA,
-                        seqv++,  // head
-                        COOK,
-                        MD_MULTI,  //
-
-                        (theJob.temperature / 100).toByte(),
-                        theJob.temperature.mod(100).toByte(),  // temperature
-
-                        (theJob.timeMins / 60).toByte(),
-                        theJob.timeMins.mod(60).toByte(),  // time BCD
-
-                        0,
-                        0,
-                        1,  // malsciita
-                        STP
+                mBluetoothGatt.writeDescriptor(descriptor)
+                if (waitCallBackFlag()) {
+                    Log.d("MyLog", "descriptor")
+                    val SET_PASS = byteArrayOf(
+                        STA, seqv++, 0xFF.toByte(), 0x79, 0xA2.toByte(), 0x9C.toByte(),
+                        0x39, 0x38, 0xA2.toByte(), 0x44, 0xD5.toByte(), STP
                     )
-                    // simple run
-                    Log.d("MyLog", Arrays.toString(COMMAND) )
-                    btCharHE!!.value = COMMAND
+                    btCharHE!!.value = SET_PASS
                     mBluetoothGatt.writeCharacteristic(btCharHE)
-                    SystemClock.sleep(1000)
+                    if (waitCallBackFlag()){
+                        btCharHE!!.value = byteArrayOf(0x55, seqv++, PING, 0xAA.toByte())  // ping
+                        mBluetoothGatt.writeCharacteristic(btCharHE)
+                        if (waitCallBackFlag()){
+                            if (theJob.temperature >= 35) {
+                                // set up cook mode ----
+                                val COMMAND = byteArrayOf(
+                                    STA,
+                                    seqv++,  // head
+                                    COOK,
+                                    MD_MULTI,  //
 
-                    btCharHE!!.value = byteArrayOf(STA, seqv++, GO, STP) // GO
-                    mBluetoothGatt.writeCharacteristic(btCharHE)
+                                    (theJob.temperature / 100).toByte(),
+                                    theJob.temperature.mod(100).toByte(),  // temperature
+
+                                    (theJob.timeMins / 60).toByte(),
+                                    theJob.timeMins.mod(60).toByte(),  // time BCD
+
+                                    0,
+                                    0,
+                                    1,  // malsciita
+                                    STP
+                                )
+
+                                btCharHE!!.value = COMMAND
+                                mBluetoothGatt.writeCharacteristic(btCharHE)
+                                waitCallBackFlag()
+                                btCharHE!!.value = byteArrayOf(STA, seqv++, GO, STP) // GO
+                                mBluetoothGatt.writeCharacteristic(btCharHE)
+                                waitCallBackFlag()
+                            }
+                            else {// stop
+                                btCharHE!!.value = byteArrayOf(STA, seqv++, FINISH, STP) // Stop
+                                mBluetoothGatt.writeCharacteristic(btCharHE)
+                                waitCallBackFlag()
+                            }
+                            //todo проверка по статусу
+//                            val QUERY = byteArrayOf(0x55, 0x01, STATUS, 0xAA.toByte())
+//                            for (I in 0..10) {
+//                                QUERY[1] = seqv++
+//                                btCharHE!!.value = QUERY
+//                                mBluetoothGatt!!.writeCharacteristic(btCharHE)
+//                                SystemClock.sleep(1000)
+//                            }
+                            cmdSuccess = true
+                        }
+                    }
                 }
-                else {
-                    // stop
-                    btCharHE!!.value = byteArrayOf(STA, seqv++, FINISH, STP) // Stop
-                    mBluetoothGatt.writeCharacteristic(btCharHE)
-                }
-
-                // todo проверяем по статусу
-                /*
-                val QUERY = byteArrayOf(0x55, 0x01, STATUS, 0xAA.toByte())
-                for (I in 0..10) {
-                    QUERY[1] = seqv++
-                    btCharHE!!.value = QUERY
-                    mBluetoothGatt!!.writeCharacteristic(btCharHE)
-                    SystemClock.sleep(1000)
-                }
-                */
-
-
-                Log.d("MyLog", "disconnect")
                 disconnect()
+//                waitCallBackFlag()
             }
             else {
                 jobCatch.isMissed = true
             }
 
             Log.d("MyLog", "Stop Thread")
+            //todo отправляем интент
+
+
             theJob.timeMins = 0
         }.start()
     }
+
+
+    private fun waitCallBackFlag() : Boolean{
+        for (tmW in 1..200){
+            SystemClock.sleep(50)
+            if (callBackFlag) {
+                callBackFlag = false // por sekva fojo
+                return true
+            }
+        }
+        return false
+    }
+
 
     private fun connect(): Boolean {
         val device: BluetoothDevice? = mBluetoothAdapter.getRemoteDevice(StoreVals.DeviceAddress)
@@ -176,6 +187,24 @@ class ServBLE : Service() {
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 mBluetoothGatt.discoverServices() // ===  что у нас есть? ===\
             }
+        }
+
+        override fun onDescriptorWrite(
+            gatt: BluetoothGatt?,
+            descriptor: BluetoothGattDescriptor?,
+            status: Int
+        ) {
+            super.onDescriptorWrite(gatt, descriptor, status)
+            if (status == BluetoothGatt.GATT_SUCCESS )  callBackFlag = true
+        }
+
+        override fun onCharacteristicWrite(
+            gatt: BluetoothGatt?,
+            characteristic: BluetoothGattCharacteristic?,
+            status: Int
+        ) {
+            super.onCharacteristicWrite(gatt, characteristic, status)
+            if (status == BluetoothGatt.GATT_SUCCESS) callBackFlag = true
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {

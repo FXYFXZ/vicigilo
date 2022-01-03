@@ -261,7 +261,7 @@ class MainActivity : AppCompatActivity() {  // =================================
 
         calendar.timeInMillis = System.currentTimeMillis()
         calendar.add(Calendar.MINUTE, myMinutes)
-        calendar.add(Calendar.SECOND, -10) // no jitter
+        calendar.add(Calendar.SECOND, 20) // no jitter
         mAlarmManager.set(
             AlarmManager.RTC_WAKEUP,  calendar.timeInMillis, mPendingIntent)
     }
