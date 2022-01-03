@@ -19,9 +19,9 @@ class ServBLE : Service() {
     lateinit var mBluetoothAdapter: BluetoothAdapter
     lateinit var mBluetoothGatt: BluetoothGatt
     private var charReady = false
-    //lateinit var btChar: BluetoothGattCharacteristic
     private var btCharHC: BluetoothGattCharacteristic? = null
     private var btCharHE: BluetoothGattCharacteristic? = null
+    lateinit var jobCatch: TimerHolder
 
     inner class MyBinder : Binder() {
         fun getService() : ServBLE {
@@ -46,6 +46,7 @@ class ServBLE : Service() {
         theJob.timeMins = myJob.timeMins
         theJob.temperature = myJob.temperature
         Log.d("MyLog", "got Job" + myJob.temperature)
+        jobCatch = myJob
         if (connect()) {
             runTask()
         }
@@ -82,7 +83,8 @@ class ServBLE : Service() {
                 SystemClock.sleep(200)
                 val SET_PASS = byteArrayOf(
                     STA, seqv++, 0xFF.toByte(), 0x79, 0xA2.toByte(), 0x9C.toByte(),
-                    0x38, 0x38, 0xA2.toByte(), 0x44, 0xD5.toByte(), STP
+                    0x39, 0x38, 0xA2.toByte(), 0x44, 0xD5.toByte(), STP
+//                    0x30, 0x38, 0xA2.toByte(), 0x44, 0xD5.toByte(), STP
                 )
 
                 btCharHE!!.value = SET_PASS
@@ -143,6 +145,9 @@ class ServBLE : Service() {
 
                 Log.d("MyLog", "disconnect")
                 disconnect()
+            }
+            else {
+                jobCatch.isMissed = true
             }
 
             Log.d("MyLog", "Stop Thread")
@@ -219,10 +224,5 @@ class ServBLE : Service() {
 
         return (btCharHC != null) && (btCharHE != null)
     }
-
-
-
-
-
 
 }

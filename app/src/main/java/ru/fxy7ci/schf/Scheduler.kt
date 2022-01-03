@@ -71,6 +71,7 @@ class Scheduler {
 
     fun startWork(): Boolean{
         if (listTimers.count() == 0) return false
+        for (item in listTimers) item.isMissed = false
         curPos = 0 // стартовая позиция
         return true
     }

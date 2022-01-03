@@ -81,6 +81,7 @@ class MainActivity : AppCompatActivity() {  // =================================
     override fun onStart() {  // START
         super.onStart()
         updateMenu()
+        timerAdapter.notifyDataSetChanged()
         binding.lyNewRecipe.visibility = View.GONE
     }
 
@@ -195,26 +196,20 @@ class MainActivity : AppCompatActivity() {  // =================================
     private fun goStart() {
         if (scheduler.isOn()) return
         if (!scheduler.startWork()) return
-        setnewAlarm()
+        setNewAlarm()
     }
 
-    private fun setnewAlarm() {
-        timerAdapter.notifyDataSetChanged()
-        updateMenu()
-        saveData()
+    private fun setNewAlarm() {
         if (scheduler.isOn()) {
             // есть время...
             val curPos = scheduler.getCurPos()
             val curTM = timerAdapter.getItem(curPos) as TimerHolder
             srvBLE.getJob(curTM)
             startAlarm(curTM.timeMins)
-            scheduler.advance()
         }
-        else {
-            //todo информируем о завершении
-            // может принудительно  выключаем...
-            srvBLE.getJob(TimerHolder(0,1))
-        }
+        timerAdapter.notifyDataSetChanged()
+        updateMenu()
+        saveData()
     }
 
     // Остановка всех процессов
@@ -237,9 +232,21 @@ class MainActivity : AppCompatActivity() {  // =================================
        updateMenu()
     }
 
+    //
     private var broadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            setnewAlarm()
+            scheduler.advance()
+            if (scheduler.isOn()) {
+                setNewAlarm()
+            }
+            else {
+                //todo sxtopigi se devas
+                //srvBLE.getJob(TimerHolder(0, 1))
+                //todo информируем о завершении
+                timerAdapter.notifyDataSetChanged()
+                updateMenu()
+                saveData()
+            }
         }
     }
 
