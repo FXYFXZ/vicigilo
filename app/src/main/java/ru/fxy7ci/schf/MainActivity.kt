@@ -18,6 +18,10 @@ import android.widget.AdapterView.AdapterContextMenuInfo
 import ru.fxy7ci.schf.databinding.ActivityMainBinding
 import android.widget.ArrayAdapter
 import androidx.activity.result.contract.ActivityResultContracts
+import android.content.Intent
+
+
+
 
 
 class MainActivity : AppCompatActivity() {  // ========================================== MAIN =====
@@ -55,7 +59,12 @@ class MainActivity : AppCompatActivity() {  // =================================
         fillSpinner()
         eventsMake()
         loadData()
-        registerReceiver(broadcastReceiver,  IntentFilter(StoreVals.MAIN_BRD_ALARM))
+
+        val myIntentFilter = IntentFilter()
+        myIntentFilter.addAction(StoreVals.MAIN_BRD_ALARM)
+        myIntentFilter.addAction(StoreVals.MAIN_BRD_BLE)
+        registerReceiver(broadcastReceiver,  myIntentFilter)
+
         registerForContextMenu(binding.lvTimers)
         updateMenu()
         // Service
@@ -222,7 +231,21 @@ class MainActivity : AppCompatActivity() {  // =================================
     }
 
     private fun launchTime(myItemID : Int) {
-        srvBLE.getJob(timerAdapter.getItem(myItemID) as TimerHolder) // запускаем процесс
+
+//        val intentMyIntentService = Intent(this, MyIntentService::class.java)
+//        intentMyIntentService.action = ACTION_FOO
+//        intentMyIntentService.putExtra(EXTRA_PARAM1, "Pushira")
+//        intentMyIntentService.putExtra(EXTRA_PARAM2, "Mushina")
+//        startService(intentMyIntentService)
+
+
+        MyIntentService.startActionFoo(this, 20, 10, myItemID)
+
+
+
+        //srvBLE.getJob(timerAdapter.getItem(myItemID) as TimerHolder) // запускаем процесс
+
+
     }
 
     private fun deleteTime(myItemID : Int) {
@@ -235,17 +258,28 @@ class MainActivity : AppCompatActivity() {  // =================================
     //
     private var broadcastReceiver: BroadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            scheduler.advance()
-            if (scheduler.isOn()) {
-                setNewAlarm()
-            }
-            else {
-                //todo sxtopigi se devas
-                //srvBLE.getJob(TimerHolder(0, 1))
-                //todo информируем о завершении
-                timerAdapter.notifyDataSetChanged()
-                updateMenu()
-                saveData()
+            when(intent.action) {
+                StoreVals.MAIN_BRD_ALARM -> {
+                    scheduler.advance()
+                    if (scheduler.isOn()) {
+                        setNewAlarm()
+                    }
+                    else {
+                        //todo sxtopigi se devas
+                        //srvBLE.getJob(TimerHolder(0, 1))
+                        //todo информируем о завершении
+                        timerAdapter.notifyDataSetChanged()
+                        updateMenu()
+                        saveData()
+                    }
+                }
+                StoreVals.MAIN_BRD_BLE -> {
+                    val possID = intent.getIntExtra(EXTRA_PARAM3,-1)
+                    val timer = timerAdapter.getItem(possID)  as TimerHolder
+                    timer.isMissed = true
+                    Log.d("MyLog", "got BLE")
+                    timerAdapter.notifyDataSetChanged()
+                }
             }
         }
     }
