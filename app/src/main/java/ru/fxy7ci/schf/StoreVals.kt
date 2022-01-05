@@ -10,12 +10,10 @@ class StoreVals {
         const val APP_PREFERENCES = "myAppSettings"
 
         const val MAIN_BRD_ALARM = "BroadCastOnAlarm"
-        const val MAIN_BRD_BLE = "BroadCastOnBLE"
+        const val MAIN_BRD_BLE_OK =  "ru.fxy7ci.schf.BroadCastOnBLE_OK"
+        const val MAIN_BRD_BLE_ERR = "ru.fxy7ci.schf.BroadCastOnBLE_ERR"
 
         const val CODE_MAX_TIMERS = 9
-
-
-
 
         // BLE
         const val BT_REQUEST_PERMISSION : Int = 89

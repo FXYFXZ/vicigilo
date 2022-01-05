@@ -62,7 +62,8 @@ class MainActivity : AppCompatActivity() {  // =================================
 
         val myIntentFilter = IntentFilter()
         myIntentFilter.addAction(StoreVals.MAIN_BRD_ALARM)
-        myIntentFilter.addAction(StoreVals.MAIN_BRD_BLE)
+        myIntentFilter.addAction(StoreVals.MAIN_BRD_BLE_OK)
+        myIntentFilter.addAction(StoreVals.MAIN_BRD_BLE_ERR)
         registerReceiver(broadcastReceiver,  myIntentFilter)
 
         registerForContextMenu(binding.lvTimers)
@@ -231,21 +232,8 @@ class MainActivity : AppCompatActivity() {  // =================================
     }
 
     private fun launchTime(myItemID : Int) {
-
-//        val intentMyIntentService = Intent(this, MyIntentService::class.java)
-//        intentMyIntentService.action = ACTION_FOO
-//        intentMyIntentService.putExtra(EXTRA_PARAM1, "Pushira")
-//        intentMyIntentService.putExtra(EXTRA_PARAM2, "Mushina")
-//        startService(intentMyIntentService)
-
-
-        MyIntentService.startActionFoo(this, 20, 10, myItemID)
-
-
-
-        //srvBLE.getJob(timerAdapter.getItem(myItemID) as TimerHolder) // запускаем процесс
-
-
+        val tmr = timerAdapter.getItem(myItemID) as TimerHolder
+        MyIntentService.setServJob(this, tmr.temperature, tmr.timeMins, myItemID)
     }
 
     private fun deleteTime(myItemID : Int) {
@@ -273,11 +261,10 @@ class MainActivity : AppCompatActivity() {  // =================================
                         saveData()
                     }
                 }
-                StoreVals.MAIN_BRD_BLE -> {
-                    val possID = intent.getIntExtra(EXTRA_PARAM3,-1)
+                StoreVals.MAIN_BRD_BLE_OK, StoreVals.MAIN_BRD_BLE_ERR  -> {
+                    val possID = intent.getIntExtra(BLE_PROC_PARAM_ID,-1)
                     val timer = timerAdapter.getItem(possID)  as TimerHolder
-                    timer.isMissed = true
-                    Log.d("MyLog", "got BLE")
+                    timer.isMissed = (intent.action == StoreVals.MAIN_BRD_BLE_ERR)
                     timerAdapter.notifyDataSetChanged()
                 }
             }
