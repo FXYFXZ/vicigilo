@@ -25,7 +25,7 @@ class MyBroadcastReceiver: BroadcastReceiver() {
         // дергаем через интент
         context.sendBroadcast(Intent(StoreVals.MAIN_BRD_ALARM))
 
-
+/*
         val scheduledIntent = Intent(context, MainActivity::class.java)
         scheduledIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         val contentIntent = PendingIntent.getActivity(
@@ -61,6 +61,9 @@ class MyBroadcastReceiver: BroadcastReceiver() {
 
         val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         vibrator.vibrate(200)
+
+        */
+
     }
 }
 

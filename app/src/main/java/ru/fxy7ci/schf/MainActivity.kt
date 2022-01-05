@@ -112,7 +112,6 @@ class MainActivity : AppCompatActivity() {  // =================================
             }
         }
 
-        //todo в одну кнопку
         binding.btnStart.setOnClickListener {
             goStart()
         }
@@ -275,8 +274,12 @@ class MainActivity : AppCompatActivity() {  // =================================
 
 
         calendar.timeInMillis = System.currentTimeMillis()
-        calendar.add(Calendar.MINUTE, myMinutes)
-        calendar.add(Calendar.SECOND, 20) // no jitter
+
+//        calendar.add(Calendar.MINUTE, myMinutes)
+//        calendar.add(Calendar.SECOND, 5) // no jitter
+
+        calendar.add(Calendar.SECOND, myMinutes)
+
         mAlarmManager.set(
             AlarmManager.RTC_WAKEUP,  calendar.timeInMillis, mPendingIntent)
     }
@@ -327,6 +330,9 @@ class MainActivity : AppCompatActivity() {  // =================================
     private fun getStatusText(): String {
         //todo текст статуса
         return "ETA...."
+
+
+
     }
 
 

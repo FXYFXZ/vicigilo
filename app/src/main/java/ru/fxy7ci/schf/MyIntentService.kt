@@ -47,11 +47,6 @@ class MyIntentService : IntentService("MyIntentService") {
         }
     }
 
-    override fun onDestroy() {
-        Log.d("MyLog", "DEstroed")
-        super.onDestroy()
-    }
-
     private fun setJob (myTemperature: Byte, myMinutes: Int, myPosID: Int) {
         val bluetoothAdapter: BluetoothAdapter by lazy {
             val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
@@ -63,7 +58,7 @@ class MyIntentService : IntentService("MyIntentService") {
             informMain(false, myPosID)
             return
         }
-        Log.d("MyLog", "get job")
+        Log.d("MyLog", "Job $myTemperature , $myMinutes ,$myPosID ")
 
         // get characteristic
         charReady = false
@@ -126,6 +121,7 @@ class MyIntentService : IntentService("MyIntentService") {
                         waitCallBackFlag()
                     }
                     //todo проверка по статусу
+
 //                            val QUERY = byteArrayOf(0x55, 0x01, STATUS, 0xAA.toByte())
 //                            for (I in 0..10) {
 //                                QUERY[1] = seqv++
@@ -135,10 +131,13 @@ class MyIntentService : IntentService("MyIntentService") {
 //                            }
                     informMain(true, myPosID)
                     Log.d("MyLog", "set OK")
+                    SystemClock.sleep(100)
                 }
             }
         }
         mBluetoothGatt.disconnect()
+        mBluetoothGatt.close()
+        SystemClock.sleep(100)
     }
 
     private fun waitCallBackFlag() : Boolean{
@@ -196,10 +195,10 @@ class MyIntentService : IntentService("MyIntentService") {
         }
 
         override fun onCharacteristicChanged(
-            gatt: BluetoothGatt,
-            characteristic: BluetoothGattCharacteristic
+            gatt: BluetoothGatt?,
+            characteristic: BluetoothGattCharacteristic?
         ) {
-            //todo Log.d("MyLog", Arrays.toString(characteristic.value))
+           // Log.d("MyLog", Arrays.toString(characteristic?.value))
         }
     }
 
@@ -225,9 +224,6 @@ class MyIntentService : IntentService("MyIntentService") {
 
         return (btCharHC != null) && (btCharHE != null)
     }
-
-
-
 
     private fun informMain(isSuccess: Boolean, curPos: Int){
         val responseIntent = Intent()
