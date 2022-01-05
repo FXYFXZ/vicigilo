@@ -7,17 +7,17 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.*
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import java.util.*
-import android.widget.Toast
 import android.util.Log
 import android.view.*
 import android.widget.AdapterView
 import android.widget.AdapterView.AdapterContextMenuInfo
-import ru.fxy7ci.schf.databinding.ActivityMainBinding
 import android.widget.ArrayAdapter
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import android.content.Intent
+import androidx.appcompat.app.AppCompatActivity
+import ru.fxy7ci.schf.databinding.ActivityMainBinding
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 //todo надежность
@@ -30,10 +30,13 @@ class MainActivity : AppCompatActivity() {  // =================================
     lateinit var timerAdapter : TimeGridAdapter
     private lateinit var sp: SharedPreferences
     private var supressRecChange = false
+
     // Alarmo
     private lateinit var mAlarmManager : AlarmManager
     private lateinit var mIntent: Intent
     private lateinit var mPendingIntent: PendingIntent
+
+    private lateinit var finTime: Calendar
 
     companion object {
         const val SETT_NAME = "mySettings"
@@ -199,6 +202,8 @@ class MainActivity : AppCompatActivity() {  // =================================
     private fun goStart() {
         if (scheduler.isOn()) return
         if (!scheduler.startWork()) return
+        finTime = Calendar.getInstance()
+        finTime.add(Calendar.MINUTE, scheduler.getMinutesTillEnd())
         setNewAlarm()
     }
 
@@ -328,13 +333,11 @@ class MainActivity : AppCompatActivity() {  // =================================
     }
 
     private fun getStatusText(): String {
-        //todo текст статуса
-        return "ETA...."
-
-
-
+        val mins = scheduler.getMinutesTillEnd()
+        val sdf = SimpleDateFormat("HH:mm")
+        return "(${mins/60}:${mins.mod(60)}) " +
+        "ETA" + sdf.format(finTime.getTime())
     }
-
 
     private fun updateMenu(){
         binding.spRecipes.visibility = if (scheduler.isOn()) View.GONE else View.VISIBLE
@@ -385,7 +388,6 @@ class MainActivity : AppCompatActivity() {  // =================================
             if(it.resultCode == Activity.RESULT_OK){
 //                val value = it.data?.getStringExtra("input")
                 Toast.makeText(this, "BLU ON!!!", Toast.LENGTH_SHORT).show()
-                //TODO перегрузка соединений
                 //invalidateOptionsMenu()
             }
         }

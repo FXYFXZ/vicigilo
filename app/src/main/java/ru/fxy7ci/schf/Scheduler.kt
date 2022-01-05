@@ -76,6 +76,13 @@ class Scheduler {
         return true
     }
 
+    fun getMinutesTillEnd(): Int{
+        var mins = 0
+        for (item in listTimers) mins += item.timeMins
+        return mins
+    }
+
+
     fun stopWork(){
         curPos = -1
     }
