@@ -63,7 +63,7 @@ class MyIntentService : IntentService("MyIntentService") {
             informMain(false, myPosID)
             return
         }
-        Log.d("MyLog", "try coonect")
+        Log.d("MyLog", "get job")
 
         // get characteristic
         charReady = false
@@ -134,6 +134,7 @@ class MyIntentService : IntentService("MyIntentService") {
 //                                SystemClock.sleep(1000)
 //                            }
                     informMain(true, myPosID)
+                    Log.d("MyLog", "set OK")
                 }
             }
         }

@@ -10,7 +10,6 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import java.util.*
 import android.widget.Toast
-import android.os.IBinder
 import android.util.Log
 import android.view.*
 import android.widget.AdapterView
@@ -21,7 +20,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import android.content.Intent
 
 
-
+//todo надежность
+//todo странные мелькания
+//todo комбобокс
 
 
 class MainActivity : AppCompatActivity() {  // ========================================== MAIN =====
@@ -33,8 +34,6 @@ class MainActivity : AppCompatActivity() {  // =================================
     private lateinit var mAlarmManager : AlarmManager
     private lateinit var mIntent: Intent
     private lateinit var mPendingIntent: PendingIntent
-
-    private lateinit var srvBLE: ServBLE
 
     companion object {
         const val SETT_NAME = "mySettings"
@@ -68,11 +67,6 @@ class MainActivity : AppCompatActivity() {  // =================================
 
         registerForContextMenu(binding.lvTimers)
         updateMenu()
-        // Service
-        val gattServiceIntent = Intent(this, ServBLE::class.java)
-        bindService(gattServiceIntent, mBLEConnection, BIND_AUTO_CREATE)
-
-
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -214,7 +208,7 @@ class MainActivity : AppCompatActivity() {  // =================================
             // есть время...
             val curPos = scheduler.getCurPos()
             val curTM = timerAdapter.getItem(curPos) as TimerHolder
-            srvBLE.getJob(curTM)
+            MyIntentService.setServJob(this, curTM.temperature, curTM.timeMins, curPos)
             startAlarm(curTM.timeMins)
         }
         timerAdapter.notifyDataSetChanged()
@@ -394,29 +388,12 @@ class MainActivity : AppCompatActivity() {  // =================================
             getResult.launch(enableBtIntent)
         }
         // все нормально...
-
-
     }
 
     // ================================================================================ BLE Service
-    private val mBLEConnection: ServiceConnection = object : ServiceConnection {
-        override fun onServiceConnected(componentName: ComponentName, service: IBinder) {
-            srvBLE = ServBLE().mBinder.getService()
-//            Log.d("MyLog", "main On bind")
-            val bluetoothAdapter: BluetoothAdapter by lazy {
-                val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-                bluetoothManager.adapter
-            }
-            srvBLE.mBluetoothAdapter = bluetoothAdapter
-        }
-
-        override fun onServiceDisconnected(componentName: ComponentName) {
-        }
-    }
 
     override fun onDestroy() {
         stopCook()
-        unbindService(mBLEConnection)
         super.onDestroy()
     }
 
