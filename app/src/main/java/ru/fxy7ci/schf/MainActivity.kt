@@ -15,11 +15,14 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import ru.fxy7ci.schf.Lib.LibComboBox
 import ru.fxy7ci.schf.databinding.ActivityMainBinding
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
+import android.content.Intent
+import android.content.SharedPreferences
+import androidx.preference.PreferenceManager
+
 
 //todo надежность
 //todo странные мелькания
@@ -33,19 +36,20 @@ class MainActivity : AppCompatActivity() {  // =================================
     private lateinit var mIntent: Intent
     private lateinit var mPendingIntent: PendingIntent
 
-    private lateinit var finTime: Calendar
+    private lateinit var finTime: Calendar // время завершения процесса
 
     companion object {
         const val SETT_NAME = "mySettings"
         const val SETT_MAIN_LIST = "mainlist"
     }
 
-    // база
     override fun onCreate(savedInstanceState: Bundle?) { // =============================== CREATE
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         Log.d("MyLog", "create")
+
+        finTime = Calendar.getInstance()
 
         getPermissions()
 
@@ -75,10 +79,12 @@ class MainActivity : AppCompatActivity() {  // =================================
         return super.onCreateOptionsMenu(menu)
     }
 
-
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         val item = menu!!.findItem(R.id.clearTimers)
         item.isVisible = !scheduler.isOn()
+        val item2 = menu!!.findItem(R.id.settings)
+        item2.isVisible = !scheduler.isOn()
+
         return super.onPrepareOptionsMenu(menu)
     }
 
@@ -96,10 +102,10 @@ class MainActivity : AppCompatActivity() {  // =================================
                 binding.edTime.text.isNotEmpty()
             ){
                 val temperature = binding.edTemperature.text.toString().toInt()
-                val timeDecs = binding.edTime.text.toString().toInt()
+                val timeMinutes = binding.edTime.text.toString().toInt()
 
-                if (temperature in  30..100  && timeDecs in 1..255    ) {
-                    scheduler.add(TimerHolder(temperature.toByte(),timeDecs))
+                if (temperature in  30..100  && timeMinutes in 1..500) {
+                    scheduler.add(TimerHolder(temperature.toByte(),timeMinutes))
                     binding.spRecipes.setSelection(0)
                     timerAdapter.notifyDataSetChanged()
                     saveData()
@@ -128,7 +134,7 @@ class MainActivity : AppCompatActivity() {  // =================================
         // Recipe change
         binding.spRecipes.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                if (position != 0) {
+                if (position != 0) { // top is empty
                     loadData(binding.spRecipes.adapter.getItem(position).toString())
                     timerAdapter.notifyDataSetChanged()
                     saveData()
@@ -164,6 +170,9 @@ class MainActivity : AppCompatActivity() {  // =================================
                     fillSpinner()
                 }
             }
+            R.id.settings -> {
+                goSettings()
+            }
         }
         return super.onOptionsItemSelected(item)
     }
@@ -193,6 +202,11 @@ class MainActivity : AppCompatActivity() {  // =================================
             }
         }
         return super.onContextItemSelected(item)
+    }
+
+    private fun goSettings(){
+        val intent = Intent(this, SettingsActivity::class.java)
+        startActivity(intent)
     }
 
     private fun goStart() {
@@ -308,6 +322,13 @@ class MainActivity : AppCompatActivity() {  // =================================
         sp.getStringSet(SETT_MAIN_LIST, null)?.let {
             scheduler.loadFromStringSet(it)
         }
+
+        // app settings
+        val sharedPref=  PreferenceManager.getDefaultSharedPreferences(this)
+        if (sharedPref.getBoolean("use_bluetooth", false)) {
+            Log.d("MyLog", "use BLE")
+        }
+
     }
 
     private fun loadData(myName: String){
@@ -327,8 +348,6 @@ class MainActivity : AppCompatActivity() {  // =================================
         val adpt = ArrayAdapter(this, android.R.layout.simple_list_item_1, data)
         adpt.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spRecipes.adapter = adpt
-        val bxRecipes = LibComboBox()
-        bxRecipes.getMe
     }
 
     private fun getStatusText(): String {
@@ -399,10 +418,10 @@ class MainActivity : AppCompatActivity() {  // =================================
 
     // ================================================================================ BLE Service
 
-    override fun onDestroy() {
-        stopCook()
-        super.onDestroy()
-    }
+//    override fun onDestroy() {
+//        stopCook()
+//        super.onDestroy()
+//    }
 
 } // CLASS ________________________________________________________________________________CLASS END
 

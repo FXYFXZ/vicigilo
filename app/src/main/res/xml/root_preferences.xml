@@ -1,0 +1,26 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="@string/sett_grp_general">
+
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:key="use_bluetooth"
+            app:title="@string/sett_gen_use_ble" />
+
+        <SwitchPreferenceCompat
+            app:defaultValue="false"
+            app:icon="@drawable/ic_action_cat"
+            app:key="notification"
+            app:title="@string/sett_gen_notificate" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="@string/sett_grp_bluetooth">
+        <EditTextPreference
+            app:key="MAC"
+            app:title="@string/sett_mac_addr"
+            app:useSimpleSummaryProvider="true" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

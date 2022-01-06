@@ -26,7 +26,6 @@ class TimeGridAdapter (var context: Context, var timerList: List<TimerHolder>) :
 
     override fun getItemId(position: Int): Long {
         return position.toLong()
-        //TODO("Not yet implemented")
     }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
@@ -46,18 +45,12 @@ class TimeGridAdapter (var context: Context, var timerList: List<TimerHolder>) :
         timeSet.text = minText
 
         val progress = newView.findViewById<View>(R.id.progressBar) as ProgressBar
-        val progrTime = newView.findViewById<View>(R.id.pbTimeLast) as ProgressBar
         val imgErr = newView.findViewById<View>(R.id.imgErr) as ImageView
-
 
         if (scheduler.isOn() && scheduler.getCurPos() == position) {
             progress.visibility = View.VISIBLE
-//            progrTime.visibility = View.VISIBLE
-//todo рассчитываем время на прогрессбаре
-//            progrTime.progress = (timerList[position].downCounter*100)/(timerList[position].timeDecMins*10)
         } else {
             progress.visibility = View.GONE
-            progrTime.visibility = View.GONE
         }
         imgErr.visibility =  if (timerList[position].isMissed) View.VISIBLE else View.GONE
         return newView

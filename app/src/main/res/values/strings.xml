@@ -7,6 +7,7 @@
     <string name="menu_save_list">Сохранить рецепт</string>
     <string name="menu_delete_list">Удалить рецепт</string>
     <string name="menu_clear_list">Очистить список</string>
+    <string name="menu_settings">Настройки</string>
 
     <string name="menu_recipe_hint">Выберите из списка...</string>
     <string name="menu_btn_save_list">Новый рецепт...</string>
@@ -19,6 +20,20 @@
     <string name="btn_add">+</string>
     <string name="btn_go_stop">СТОП</string>
     <string name="txt_minutes">"%1$s мин"</string>
+    <string name="title_activity_settings">Настройки</string>
+
+    <!-- Preference Titles -->
+    <string name="sett_grp_bluetooth">Настройки Bluetooth</string>
+    <string name="sett_grp_general">Общие</string>
+
+    <!-- Messages Preferences -->
+    <string name="sett_mac_addr">MAC</string>
+    <string name="reply_title">Default reply action</string>
+
+    <!-- Sync Preferences -->
+    <string name="sett_gen_use_ble">Управление мультиваркой</string>
+    <string name="sett_gen_notificate">Включать сигнал\nпри смене режима</string>
+
 </resources>
 
 

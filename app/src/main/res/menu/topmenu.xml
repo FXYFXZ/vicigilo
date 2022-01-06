@@ -20,5 +20,9 @@
         android:title="@string/menu_clear_list"
         app:showAsAction="always" />
 
+    <item
+        android:id="@+id/settings"
+        android:title="@string/menu_settings"
+        app:showAsAction="never" />
 
 </menu>
