@@ -8,8 +8,8 @@
     <string name="menu_delete_list">Удалить рецепт</string>
     <string name="menu_clear_list">Очистить список</string>
 
-    <string name="menu_recipe_hint">Новый рецепт</string>
-    <string name="menu_btn_save_list">Сохранить</string>
+    <string name="menu_recipe_hint">Выберите из списка...</string>
+    <string name="menu_btn_save_list">Новый рецепт...</string>
 
     <string name="btn_hint_temp">25-100º</string>
     <string name="btn_hint_time">1-200мин</string>

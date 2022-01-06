@@ -15,22 +15,19 @@ import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import ru.fxy7ci.schf.Lib.LibComboBox
 import ru.fxy7ci.schf.databinding.ActivityMainBinding
 import java.text.SimpleDateFormat
 import java.util.*
-
+import kotlin.collections.ArrayList
 
 //todo надежность
 //todo странные мелькания
-//todo комбобокс
-
 
 class MainActivity : AppCompatActivity() {  // ========================================== MAIN =====
     private lateinit var binding: ActivityMainBinding
     lateinit var timerAdapter : TimeGridAdapter
     private lateinit var sp: SharedPreferences
-    private var supressRecChange = false
-
     // Alarmo
     private lateinit var mAlarmManager : AlarmManager
     private lateinit var mIntent: Intent
@@ -103,6 +100,7 @@ class MainActivity : AppCompatActivity() {  // =================================
 
                 if (temperature in  30..100  && timeDecs in 1..255    ) {
                     scheduler.add(TimerHolder(temperature.toByte(),timeDecs))
+                    binding.spRecipes.setSelection(0)
                     timerAdapter.notifyDataSetChanged()
                     saveData()
                     updateMenu()
@@ -130,10 +128,7 @@ class MainActivity : AppCompatActivity() {  // =================================
         // Recipe change
         binding.spRecipes.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                if (supressRecChange) {
-                    supressRecChange = false
-                }
-                else {
+                if (position != 0) {
                     loadData(binding.spRecipes.adapter.getItem(position).toString())
                     timerAdapter.notifyDataSetChanged()
                     saveData()
@@ -154,6 +149,7 @@ class MainActivity : AppCompatActivity() {  // =================================
             }
             R.id.clearTimers -> {
                 scheduler.clearList()
+                binding.spRecipes.setSelection(0)
                 timerAdapter.notifyDataSetChanged()
                 saveData()
                 updateMenu()
@@ -237,6 +233,7 @@ class MainActivity : AppCompatActivity() {  // =================================
     private fun deleteTime(myItemID : Int) {
        scheduler.delete(myItemID)
        timerAdapter.notifyDataSetChanged()
+       binding.spRecipes.setSelection(0)
        saveData()
        updateMenu()
     }
@@ -280,10 +277,10 @@ class MainActivity : AppCompatActivity() {  // =================================
 
         calendar.timeInMillis = System.currentTimeMillis()
 
-//        calendar.add(Calendar.MINUTE, myMinutes)
-//        calendar.add(Calendar.SECOND, 5) // no jitter
+        calendar.add(Calendar.MINUTE, myMinutes)
+        calendar.add(Calendar.SECOND, 5) // no jitter
 
-        calendar.add(Calendar.SECOND, myMinutes)
+//        calendar.add(Calendar.SECOND, myMinutes)
 
         mAlarmManager.set(
             AlarmManager.RTC_WAKEUP,  calendar.timeInMillis, mPendingIntent)
@@ -320,16 +317,18 @@ class MainActivity : AppCompatActivity() {  // =================================
     }
 
     private fun fillSpinner(){
-        val mList : MutableSet<String> = mutableSetOf()
+        val data = ArrayList<String>()
+        data.add(0, resources.getString(R.string.menu_recipe_hint))
         sp.all.forEach{
             if (it.key != SETT_MAIN_LIST) {
-                mList.add(it.key)
+                data.add(it.key)
             }
         }
-        val data = mList.toTypedArray()
         val adpt = ArrayAdapter(this, android.R.layout.simple_list_item_1, data)
+        adpt.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spRecipes.adapter = adpt
-        supressRecChange = true
+        val bxRecipes = LibComboBox()
+        bxRecipes.getMe
     }
 
     private fun getStatusText(): String {
