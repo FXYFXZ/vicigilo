@@ -1,8 +1,6 @@
 package ru.fxy7ci.schf
 
-import android.app.Activity
-import android.app.AlarmManager
-import android.app.PendingIntent
+import android.app.*
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.*
@@ -21,6 +19,10 @@ import java.util.*
 import kotlin.collections.ArrayList
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.BitmapFactory
+import android.media.RingtoneManager
+import android.net.Uri
+import android.os.Vibrator
 import androidx.preference.PreferenceManager
 
 //todo странные мелькания
@@ -325,7 +327,6 @@ class MainActivity : AppCompatActivity() {  // =================================
         sp.getStringSet(SETT_MAIN_LIST, null)?.let {
             scheduler.loadFromStringSet(it)
         }
-
         // app settings
         val sharedPref=  PreferenceManager.getDefaultSharedPreferences(this)
         StoreVals.useBLE = sharedPref.getBoolean("use_bluetooth", false)
@@ -420,39 +421,49 @@ class MainActivity : AppCompatActivity() {  // =================================
 
 
     // Informi pri...
-    fun informiPri(myNotofication: StoreVals.COOK_NOTIFICATION) {
-
-        if (myNotofication == StoreVals.COOK_NOTIFICATION.COOK_END) {
-            Log.d("MyLog", "cookend")
+    fun informiPri(myNotification: StoreVals.COOK_NOTIFICATION) {
+        if ((myNotification == StoreVals.COOK_NOTIFICATION.COOK_ETAP_NEXT) && (!StoreVals.useNotification)) return
+        val msgTitle : String
+        val msgText : String
+        when (myNotification) {
+            StoreVals.COOK_NOTIFICATION.COOK_END ->{
+                msgTitle = "Блюдо готово"
+                msgText = "Процесс успешно закончился"
+            }
+            StoreVals.COOK_NOTIFICATION.COOK_ETAP_NEXT ->{
+                msgTitle = "Блюдо готово"
+                msgText = "Процесс закончился"
+            }
+            StoreVals.COOK_NOTIFICATION.COOK_BLE_ERRO ->{
+                msgTitle = "Ошибка BLE"
+                msgText = "Не удалось установть режим"
+            }
         }
 
-
-/*
-        val scheduledIntent = Intent(context, MainActivity::class.java)
+        val scheduledIntent = Intent(this, MainActivity::class.java)
         scheduledIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         val contentIntent = PendingIntent.getActivity(
-            context, 0,
+            this, 0,
             scheduledIntent, 0
         )
 
-        val notificationManager = context
-            .getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        val res = context.resources
+        val res = this.resources
         val alarmSound: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 
-        val notification: Notification = Notification.Builder(context)
+        val notification: Notification = Notification.Builder(this)
             .setContentIntent(contentIntent)
-            .setContentText("Да накорми кота, наконец") // Текст уведомления
-            .setContentTitle("Время кормить кота") // Заголовок уведомления
-            .setSmallIcon(R.drawable.sym_def_app_icon)
+            .setContentText(msgText) // Текст уведомления
+            .setContentTitle(msgTitle) // Заголовок уведомления
+            .setSmallIcon(R.drawable.ic_action_cat)
             .setLargeIcon(
                 BitmapFactory.decodeResource(
                     res,
-                    R.drawable.sym_def_app_icon
+                    R.drawable.ic_city
                 )
             )
-            .setTicker("Накорми кота!") // текст в строке состояния
+            .setTicker(msgTitle) // текст в строке состояния
            // .setWhen(System.currentTimeMillis()).setAutoCancel(true)
             .setSound(alarmSound)
             .setLights(0xff00ff, 300, 100)
@@ -461,14 +472,8 @@ class MainActivity : AppCompatActivity() {  // =================================
           notificationManager.notify(1, notification)
 
 
-        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         vibrator.vibrate(200)
-
-        */
-
-
-
-
 
     }
 

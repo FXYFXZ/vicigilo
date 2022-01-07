@@ -32,7 +32,7 @@
 
     <!-- Sync Preferences -->
     <string name="sett_gen_use_ble">Управление мультиваркой</string>
-    <string name="sett_gen_notificate">Включать сигнал\nпри смене режима</string>
+    <string name="sett_gen_notificate">Промежуточный сигнал</string>
 
 </resources>
 
