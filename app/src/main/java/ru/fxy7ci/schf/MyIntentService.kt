@@ -53,6 +53,12 @@ class MyIntentService : IntentService("MyIntentService") {
             bluetoothManager.adapter
         }
         mBluetoothAdapter = bluetoothAdapter
+
+        if (StoreVals.DeviceAddress.length < 16) {
+            informMain(false, myPosID)
+            return
+        }
+
         val device: BluetoothDevice? = mBluetoothAdapter.getRemoteDevice(StoreVals.DeviceAddress)
         if (device == null) {
             informMain(false, myPosID)
@@ -242,6 +248,9 @@ class MyIntentService : IntentService("MyIntentService") {
     companion object {
         @JvmStatic
         fun setServJob(context: Context, myTemperature: Byte, myMinutes: Int, myPosID: Int) {
+
+            if (!StoreVals.useBLE) return
+
             val intent = Intent(context, MyIntentService::class.java).apply {
                 action = ACTION_FOO
                 putExtra(EXTRA_PARAM1, myTemperature)

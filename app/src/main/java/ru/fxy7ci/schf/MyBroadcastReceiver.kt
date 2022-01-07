@@ -13,57 +13,10 @@ import android.net.Uri
 import android.os.Vibrator
 import android.util.Log
 
-
 class MyBroadcastReceiver: BroadcastReceiver() {
-
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d("MyLog", "broadcast")
-
-
-        //todo правильно будить приложение
-
         // дергаем через интент
         context.sendBroadcast(Intent(StoreVals.MAIN_BRD_ALARM))
-
-/*
-        val scheduledIntent = Intent(context, MainActivity::class.java)
-        scheduledIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        val contentIntent = PendingIntent.getActivity(
-            context, 0,
-            scheduledIntent, 0
-        )
-
-        val notificationManager = context
-            .getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-        val res = context.resources
-        val alarmSound: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-
-        val notification: Notification = Notification.Builder(context)
-            .setContentIntent(contentIntent)
-            .setContentText("Да накорми кота, наконец") // Текст уведомления
-            .setContentTitle("Время кормить кота") // Заголовок уведомления
-            .setSmallIcon(R.drawable.sym_def_app_icon)
-            .setLargeIcon(
-                BitmapFactory.decodeResource(
-                    res,
-                    R.drawable.sym_def_app_icon
-                )
-            )
-            .setTicker("Накорми кота!") // текст в строке состояния
-           // .setWhen(System.currentTimeMillis()).setAutoCancel(true)
-            .setSound(alarmSound)
-            .setLights(0xff00ff, 300, 100)
-            .build()
-
-          notificationManager.notify(1, notification)
-
-
-        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-        vibrator.vibrate(200)
-
-        */
-
     }
 }
 

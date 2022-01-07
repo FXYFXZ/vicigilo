@@ -23,8 +23,6 @@ import android.content.Intent
 import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
 
-
-//todo надежность
 //todo странные мелькания
 
 class MainActivity : AppCompatActivity() {  // ========================================== MAIN =====
@@ -61,7 +59,7 @@ class MainActivity : AppCompatActivity() {  // =================================
         binding.lvTimers.adapter = timerAdapter
         fillSpinner()
         eventsMake()
-        loadData()
+        stateLoad()
 
         val myIntentFilter = IntentFilter()
         myIntentFilter.addAction(StoreVals.MAIN_BRD_ALARM)
@@ -108,7 +106,7 @@ class MainActivity : AppCompatActivity() {  // =================================
                     scheduler.add(TimerHolder(temperature.toByte(),timeMinutes))
                     binding.spRecipes.setSelection(0)
                     timerAdapter.notifyDataSetChanged()
-                    saveData()
+                    stateSave()
                     updateMenu()
                 }
                 binding.edTemperature.text.clear()
@@ -135,9 +133,9 @@ class MainActivity : AppCompatActivity() {  // =================================
         binding.spRecipes.onItemSelectedListener = object : AdapterView.OnItemSelectedListener{
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 if (position != 0) { // top is empty
-                    loadData(binding.spRecipes.adapter.getItem(position).toString())
+                    stateLoad(binding.spRecipes.adapter.getItem(position).toString())
                     timerAdapter.notifyDataSetChanged()
-                    saveData()
+                    stateSave()
                     updateMenu()
                 }
             }
@@ -157,7 +155,7 @@ class MainActivity : AppCompatActivity() {  // =================================
                 scheduler.clearList()
                 binding.spRecipes.setSelection(0)
                 timerAdapter.notifyDataSetChanged()
-                saveData()
+                stateSave()
                 updateMenu()
             }
             R.id.menuDeleteList -> {
@@ -227,7 +225,7 @@ class MainActivity : AppCompatActivity() {  // =================================
         }
         timerAdapter.notifyDataSetChanged()
         updateMenu()
-        saveData()
+        stateSave()
     }
 
     // Остановка всех процессов
@@ -235,7 +233,7 @@ class MainActivity : AppCompatActivity() {  // =================================
         scheduler.stopWork()
         timerAdapter.notifyDataSetChanged()
         updateMenu()
-        saveData()
+        stateSave()
         mAlarmManager.cancel(mPendingIntent)
     }
 
@@ -248,7 +246,7 @@ class MainActivity : AppCompatActivity() {  // =================================
        scheduler.delete(myItemID)
        timerAdapter.notifyDataSetChanged()
        binding.spRecipes.setSelection(0)
-       saveData()
+       stateSave()
        updateMenu()
     }
 
@@ -260,20 +258,25 @@ class MainActivity : AppCompatActivity() {  // =================================
                     scheduler.advance()
                     if (scheduler.isOn()) {
                         setNewAlarm()
+                        informiPri(StoreVals.COOK_NOTIFICATION.COOK_ETAP_NEXT)
                     }
                     else {
-                        //todo sxtopigi se devas
-                        //srvBLE.getJob(TimerHolder(0, 1))
-                        //todo информируем о завершении
                         timerAdapter.notifyDataSetChanged()
                         updateMenu()
-                        saveData()
+                        stateSave()
+                        informiPri(StoreVals.COOK_NOTIFICATION.COOK_END)
                     }
                 }
                 StoreVals.MAIN_BRD_BLE_OK, StoreVals.MAIN_BRD_BLE_ERR  -> {
                     val possID = intent.getIntExtra(BLE_PROC_PARAM_ID,-1)
                     val timer = timerAdapter.getItem(possID)  as TimerHolder
-                    timer.isMissed = (intent.action == StoreVals.MAIN_BRD_BLE_ERR)
+                    if (intent.action == StoreVals.MAIN_BRD_BLE_ERR) {
+                        timer.isMissed = true
+                        informiPri(StoreVals.COOK_NOTIFICATION.COOK_BLE_ERRO)
+                    }
+                    else {
+                        timer.isMissed = false
+                    }
                     timerAdapter.notifyDataSetChanged()
                 }
             }
@@ -311,27 +314,26 @@ class MainActivity : AppCompatActivity() {  // =================================
 
 
     // сохраняем всё состояние
-    private fun saveData(){
+    private fun stateSave(){
         val lst  = scheduler.getListAsStringSet()
         val e = sp.edit()
         e.putStringSet(SETT_MAIN_LIST,lst)
         e.apply()
     }
 
-    private fun loadData(){
+    private fun stateLoad(){
         sp.getStringSet(SETT_MAIN_LIST, null)?.let {
             scheduler.loadFromStringSet(it)
         }
 
         // app settings
         val sharedPref=  PreferenceManager.getDefaultSharedPreferences(this)
-        if (sharedPref.getBoolean("use_bluetooth", false)) {
-            Log.d("MyLog", "use BLE")
-        }
-
+        StoreVals.useBLE = sharedPref.getBoolean("use_bluetooth", false)
+        StoreVals.useNotification = sharedPref.getBoolean("notification", false)
+        StoreVals.DeviceAddress = sharedPref.getString("MAC", "").toString()
     }
 
-    private fun loadData(myName: String){
+    private fun stateLoad(myName: String){
         sp.getStringSet(myName, null)?.let {
             scheduler.loadFromStringSet(it)
         }
@@ -416,7 +418,62 @@ class MainActivity : AppCompatActivity() {  // =================================
         // все нормально...
     }
 
-    // ================================================================================ BLE Service
+
+    // Informi pri...
+    fun informiPri(myNotofication: StoreVals.COOK_NOTIFICATION) {
+
+        if (myNotofication == StoreVals.COOK_NOTIFICATION.COOK_END) {
+            Log.d("MyLog", "cookend")
+        }
+
+
+/*
+        val scheduledIntent = Intent(context, MainActivity::class.java)
+        scheduledIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val contentIntent = PendingIntent.getActivity(
+            context, 0,
+            scheduledIntent, 0
+        )
+
+        val notificationManager = context
+            .getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        val res = context.resources
+        val alarmSound: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+
+        val notification: Notification = Notification.Builder(context)
+            .setContentIntent(contentIntent)
+            .setContentText("Да накорми кота, наконец") // Текст уведомления
+            .setContentTitle("Время кормить кота") // Заголовок уведомления
+            .setSmallIcon(R.drawable.sym_def_app_icon)
+            .setLargeIcon(
+                BitmapFactory.decodeResource(
+                    res,
+                    R.drawable.sym_def_app_icon
+                )
+            )
+            .setTicker("Накорми кота!") // текст в строке состояния
+           // .setWhen(System.currentTimeMillis()).setAutoCancel(true)
+            .setSound(alarmSound)
+            .setLights(0xff00ff, 300, 100)
+            .build()
+
+          notificationManager.notify(1, notification)
+
+
+        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        vibrator.vibrate(200)
+
+        */
+
+
+
+
+
+    }
+
+
+
 
 //    override fun onDestroy() {
 //        stopCook()
