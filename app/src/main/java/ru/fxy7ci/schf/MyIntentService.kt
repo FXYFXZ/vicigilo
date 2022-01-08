@@ -48,20 +48,17 @@ class MyIntentService : IntentService("MyIntentService") {
     }
 
     private fun setJob (myTemperature: Byte, myMinutes: Int, myPosID: Int) {
-        val bluetoothAdapter: BluetoothAdapter by lazy {
-            val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-            bluetoothManager.adapter
-        }
-        mBluetoothAdapter = bluetoothAdapter
+        val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        mBluetoothAdapter = bluetoothManager.adapter
 
         if (StoreVals.DeviceAddress.length < 16) {
-            informMain(false, myPosID)
+            finishAndInform(false, myPosID)
             return
         }
 
         val device: BluetoothDevice? = mBluetoothAdapter.getRemoteDevice(StoreVals.DeviceAddress)
         if (device == null) {
-            informMain(false, myPosID)
+            finishAndInform(false, myPosID)
             return
         }
         Log.d("MyLog", "Job $myTemperature , $myMinutes ,$myPosID ")
@@ -74,7 +71,8 @@ class MyIntentService : IntentService("MyIntentService") {
             if (charReady) break
         }
         if (!charReady) {
-            informMain(false, myPosID)
+            finishAndInform(false, myPosID)
+            Log.d("MyLog", "no char")
             return
         }
         // Char estas pretaj ------- PRETAJ
@@ -135,14 +133,11 @@ class MyIntentService : IntentService("MyIntentService") {
 //                                mBluetoothGatt!!.writeCharacteristic(btCharHE)
 //                                SystemClock.sleep(1000)
 //                            }
-                    informMain(true, myPosID)
-                    Log.d("MyLog", "set OK")
+                    finishAndInform(true, myPosID)
                     SystemClock.sleep(100)
                 }
             }
         }
-        mBluetoothGatt.disconnect()
-        mBluetoothGatt.close()
         SystemClock.sleep(100)
     }
 
@@ -161,9 +156,13 @@ class MyIntentService : IntentService("MyIntentService") {
     // For example, connection change and services discovered.
     private val mGattCallback: BluetoothGattCallback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
+//            Log.d("MyLog", "State $newState")
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 mBluetoothGatt.discoverServices() // ===  что у нас есть? ===\
+//                Log.d("MyLog", "connected")
             }
+
+
         }
 
         override fun onDescriptorWrite(
@@ -186,6 +185,7 @@ class MyIntentService : IntentService("MyIntentService") {
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
+//                Log.d("MyLog", "discovered")
                 charReady = locateCharacteristic()
             }
         }
@@ -231,7 +231,12 @@ class MyIntentService : IntentService("MyIntentService") {
         return (btCharHC != null) && (btCharHE != null)
     }
 
-    private fun informMain(isSuccess: Boolean, curPos: Int){
+    private fun finishAndInform(isSuccess: Boolean, curPos: Int){
+        //непонятно если рассоединять, то потом не конектится
+//        mBluetoothGatt.disconnect()
+//        mBluetoothGatt.close()
+//        SystemClock.sleep(1000)
+
         val responseIntent = Intent()
         if (isSuccess)
             responseIntent.action = StoreVals.MAIN_BRD_BLE_OK
@@ -239,7 +244,6 @@ class MyIntentService : IntentService("MyIntentService") {
             responseIntent.action = StoreVals.MAIN_BRD_BLE_ERR
         responseIntent.putExtra(BLE_PROC_PARAM_ID, curPos)
         sendBroadcast(responseIntent)
-
     }
 
 

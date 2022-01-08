@@ -20,7 +20,6 @@
             android:id="@+id/tvStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="ETA: 12:66 IN: 56 мин"
             android:textSize="32dp" />
 
         <Spinner
@@ -40,14 +39,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="50"
-                android:hint="@string/menu_recipe_hint" />
+                android:hint="@string/menu_btn_save_list" />
 
             <Button
                 android:id="@+id/btnAddRecipe"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
                 android:layout_weight="20"
-                android:text="@string/menu_btn_save_list"
+                android:text="@string/menu_btn_add"
                 android:textStyle="bold" />
 
         </LinearLayout>

@@ -1,5 +1,6 @@
 package ru.fxy7ci.schf
 
+import android.Manifest
 import android.app.*
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
@@ -19,10 +20,13 @@ import java.util.*
 import kotlin.collections.ArrayList
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Vibrator
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
 
 //todo странные мелькания
@@ -151,6 +155,7 @@ class MainActivity : AppCompatActivity() {  // =================================
             R.id.menuSaveList -> {
                 binding.lyNewRecipe.visibility = View.VISIBLE
                 binding.edRecipeName.text.clear()
+                binding.spRecipes.visibility = View.GONE
                 binding.edRecipeName.requestFocus()
             }
             R.id.clearTimers -> {
@@ -312,8 +317,25 @@ class MainActivity : AppCompatActivity() {  // =================================
         e.putStringSet(binding.edRecipeName.text.toString(),lst)
         e.apply()
         binding.lyNewRecipe.visibility = View.GONE
+        binding.spRecipes.visibility = View.VISIBLE
+
+        val adpt = binding.spRecipes.adapter as ArrayAdapter<String>
+        adpt.insert(binding.edRecipeName.text.toString(),1)
+        binding.spRecipes.setSelection(1)
     }
 
+    private fun fillSpinner(){
+        val data = ArrayList<String>()
+        data.add(0, resources.getString(R.string.menu_recipe_hint))
+        sp.all.forEach{
+            if (it.key != SETT_MAIN_LIST) {
+                data.add(it.key)
+            }
+        }
+        val adpt = ArrayAdapter(this, android.R.layout.simple_list_item_1, data)
+        adpt.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.spRecipes.adapter = adpt
+    }
 
     // сохраняем всё состояние
     private fun stateSave(){
@@ -340,18 +362,7 @@ class MainActivity : AppCompatActivity() {  // =================================
         }
     }
 
-    private fun fillSpinner(){
-        val data = ArrayList<String>()
-        data.add(0, resources.getString(R.string.menu_recipe_hint))
-        sp.all.forEach{
-            if (it.key != SETT_MAIN_LIST) {
-                data.add(it.key)
-            }
-        }
-        val adpt = ArrayAdapter(this, android.R.layout.simple_list_item_1, data)
-        adpt.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        binding.spRecipes.adapter = adpt
-    }
+
 
     private fun getStatusText(): String {
         val mins = scheduler.getMinutesTillEnd()
@@ -389,14 +400,14 @@ class MainActivity : AppCompatActivity() {  // =================================
 
     // Получение разрешений
     private fun getPermissions() {
-//        myAppState = AppState.AP_BT_PROBLEM
-//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-//            != PackageManager.PERMISSION_GRANTED) {
-//            ActivityCompat.requestPermissions(
-//                this,
-//                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-//                StoreVals.BT_REQUEST_PERMISSION )
-//        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                StoreVals.BT_REQUEST_PERMISSION )
+        }
+
         // Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
         // fire an intent to display a dialog asking the user to grant permission to enable it.
         // Initializes a Bluetooth adapter.  For API level 18 and above, get a reference to

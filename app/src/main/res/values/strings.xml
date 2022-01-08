@@ -11,6 +11,7 @@
 
     <string name="menu_recipe_hint">Выберите из списка...</string>
     <string name="menu_btn_save_list">Новый рецепт...</string>
+    <string name="menu_btn_add">Сохранить</string>
 
     <string name="btn_hint_temp">25-100º</string>
     <string name="btn_hint_time">1-200мин</string>
